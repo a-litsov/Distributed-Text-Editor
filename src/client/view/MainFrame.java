@@ -38,38 +38,53 @@ import javax.swing.text.StyledDocument;
  * @author al1as
  */
 public class MainFrame extends javax.swing.JFrame {
-
+    JTextPane mainTextPane;
     /**
      * Creates new form MainFrame
      */
     public MainFrame() {
+        
         initComponents();
         this.setSize(600, 400); // Setting frame size
+        
+        mainTextPane = createNumberedTextPane();          
+        createMenu();
+        createStatusLabels();
+        
+        appendString("", mainTextPane);
+    }
+    
+    private JTextPane createNumberedTextPane() {
         JTextPane textPane = new JTextPane();
         textPane.setText("Hello there, I'm Ernie!");
-        
-        JPanel panel = new JPanel( new BorderLayout() );
+
+        JPanel panel = new JPanel(new BorderLayout());
         panel.add(textPane, BorderLayout.CENTER);
-        
+
         JScrollPane paneScrollPane = new JScrollPane(panel);
         paneScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         TextLineNumber tln = new TextLineNumber(textPane);
-        paneScrollPane.setRowHeaderView( tln );
+        paneScrollPane.setRowHeaderView(tln);
         this.getContentPane().add(paneScrollPane, BorderLayout.CENTER);
-        JMenuBar menuBar = createMenu();
-        this.setJMenuBar(menuBar);
-        JLabel label = new JLabel("left aouaoeuaoeuaoeuaeouaoeuaoeuoeuaoeu");
         
+        return textPane;
+    }
+    
+    private void createStatusLabels() {
+        JLabel label = new JLabel("left aouaoeuaoeuaoeuaeouaoeuaoeuoeuaoeu");
+
         JLabel label2 = new JLabel("center auaoeuaoeuaeouaoeuaoeee");
         JLabel label3 = new JLabel("right");
         label2.setHorizontalAlignment(JLabel.CENTER);
         label2.setVerticalAlignment(JLabel.CENTER);
-        JPanel panel2 = new JPanel( new BorderLayout() );
+        JPanel panel2 = new JPanel(new BorderLayout());
         panel2.add(label, BorderLayout.WEST);
         panel2.add(label2, BorderLayout.CENTER);
         panel2.add(label3, BorderLayout.EAST);
         this.getContentPane().add(panel2, BorderLayout.SOUTH);
-        
+    }
+    
+    private void showFileOpenDialog() {
         JTextField firstName = new JTextField();
         JTextField lastName = new JTextField();
         JPasswordField password = new JPasswordField();
@@ -90,9 +105,6 @@ public class MainFrame extends javax.swing.JFrame {
         } else {
             System.out.println("User canceled / closed the dialog, result = " + result);
         }
-        
-        appendString("", textPane);
-
     }
     
     private void appendString(String str, JTextPane textPane) {
@@ -113,7 +125,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
     
-    private JMenuBar createMenu() {
+    private void createMenu() {
         JMenuBar menuBar;
         JMenu menu, submenu;
         JMenuItem menuItem;
@@ -192,7 +204,8 @@ public class MainFrame extends javax.swing.JFrame {
         menu.getAccessibleContext().setAccessibleDescription(
                 "This menu does nothing");
         menuBar.add(menu);
-        return menuBar;
+        
+        this.setJMenuBar(menuBar);
     }
 
     /**
