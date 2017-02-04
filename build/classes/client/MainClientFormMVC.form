@@ -60,17 +60,19 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="1" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="fileListButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="usernameField" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="openFileButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="filenameField" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="startField" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="endField" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="lockButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="unlockButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="SaveButton" alignment="3" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="usernameButton" alignment="0" min="-2" pref="27" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="fileListButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="usernameField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="openFileButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="filenameField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="startField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="endField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lockButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="unlockButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="SaveButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
               </Group>
               <Component id="jScrollPane2" min="-2" pref="108" max="-2" attributes="0"/>
               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
