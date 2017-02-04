@@ -40,6 +40,8 @@ import client.model.BClientModel;
 import client.model.IClientModel;
 import client.controller.BClientController;
 import client.controller.IClientController;
+import java.awt.event.ActionListener;
+import javax.swing.JList;
 /**
  *
  * @author al1as
@@ -47,6 +49,7 @@ import client.controller.IClientController;
 public class MainFrame extends javax.swing.JFrame implements IObserver {
     JTextPane mainTextPane;
     JLabel idLabel, statusLabel, previousFilenameLabel;
+    JMenuItem openMenuItem;
     /**
      * Creates new form MainFrame
      */
@@ -136,24 +139,17 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         }
     }
     
-    private void showFileOpenDialog() {
-        JTextField firstName = new JTextField();
-        JTextField lastName = new JTextField();
-        JPasswordField password = new JPasswordField();
+    private void showFileOpenDialog(String[] data) {
+        JList fileList = new JList(data);
+        JScrollPane scrollPane = new JScrollPane(fileList);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         final JComponent[] inputs = new JComponent[]{
-            new JLabel("First"),
-            firstName,
-            new JLabel("Last"),
-            lastName,
-            new JLabel("Password"),
-            password
+            scrollPane
         };
         int result = JOptionPane.showConfirmDialog(null, inputs, "My custom dialog", JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
             System.out.println("You entered "
-                    + firstName.getText() + ", "
-                    + lastName.getText() + ", "
-                    + password.getText());
+                    + fileList.getSelectedValue());
         } else {
             System.out.println("User canceled / closed the dialog, result = " + result);
         }
@@ -188,20 +184,20 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         menuBar = new JMenuBar();
 
 //Build the first menu.
-        menu = new JMenu("A Menu");
-        menu.setMnemonic(KeyEvent.VK_A);
-        menu.getAccessibleContext().setAccessibleDescription(
-                "The only menu in this program that has menu items");
+        menu = new JMenu("File");
         menuBar.add(menu);
 
 //a group of JMenuItems
-        menuItem = new JMenuItem("A text-only menu item",
-                KeyEvent.VK_T);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
-        menuItem.getAccessibleContext().setAccessibleDescription(
-                "This doesn't really do anything");
-        menu.add(menuItem);
+        openMenuItem = new JMenuItem("Open",
+                KeyEvent.VK_O);
+        menu.add(openMenuItem);
+        
+        openMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                IClientController clientController = BClientController.build();
+                clientController.sendFileListRequest();
+            }
+        });
 
         menuItem = new JMenuItem("Both text and icon",
                 new ImageIcon("images/middle.gif"));
@@ -392,9 +388,13 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 
     @Override
     public void updateFileList() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        IClientModel clientModel = BClientModel.build();
+        String fileString = clientModel.getFileList();
+        System.out.println(fileString);
+        String[] fileList = fileString.split("\\r?\\n");
+        showFileOpenDialog(fileList);
     }
-
+    
     @Override
     public void updateFileContent() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -412,6 +412,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 
     @Override
     public void invalidUsername() {
+        statusLabel.setText("Your login or/and passowrd incorrect :(");
         showLoginDialog();
     }
 
