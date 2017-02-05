@@ -204,9 +204,9 @@ public class ClientModel implements IClientModel{
             if (i == end_) {
                 switcher++;
             }
-            TextData[switcher] += ArrayContent[i] + "\n";;
+            TextData[switcher] += ArrayContent[i] + "\n";
         }
-        TextData[1] = TextData[1].substring(0, TextData[1].length() - 1);
+        TextData[2] = TextData[2].substring(0, TextData[2].length() - 1);
         lockedPart1 = TextData[0];
         unlockedPart = TextData[1];
         lockedPart2 = TextData[2];

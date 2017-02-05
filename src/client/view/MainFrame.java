@@ -41,7 +41,11 @@ import client.model.IClientModel;
 import client.controller.BClientController;
 import client.controller.IClientController;
 import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JList;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Utilities;
 /**
  *
  * @author al1as
@@ -49,7 +53,7 @@ import javax.swing.JList;
 public class MainFrame extends javax.swing.JFrame implements IObserver {
     JTextPane mainTextPane;
     JLabel idLabel, statusLabel, previousFilenameLabel;
-    JMenuItem openMenuItem;
+    JMenuItem openMenuItem, lockMenuItem;
     /**
      * Creates new form MainFrame
      */
@@ -61,8 +65,6 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         createNumberedTextPane();          
         createMenu();
         createBottomLabels();
-        
-        appendString("", mainTextPane);
         
         IClientModel clientModel = BClientModel.build();
         clientModel.addObserver(this);
@@ -113,6 +115,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     }
     
     private void showLoginDialog() {
+        // Create dialog and show
         JTextField firstName = new JTextField();
         JTextField lastName = new JTextField();
         JPasswordField password = new JPasswordField();
@@ -131,6 +134,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                     + firstName.getText() + ", "
 //                    + lastName.getText() + ", "
                     + password.getPassword());
+            // Sending to server
             IClientController controller = BClientController.build();
             controller.sendName(firstName.getText());
         } else {
@@ -140,6 +144,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     }
     
     private void showFileOpenDialog(String[] data) {
+        // Create dialog's components and show it
         JList fileList = new JList(data);
         JScrollPane scrollPane = new JScrollPane(fileList);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -150,6 +155,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         if (result == JOptionPane.OK_OPTION) {
             System.out.println("You entered "
                     + fileList.getSelectedValue());
+            // Sending to server
             IClientController clientController = BClientController.build();
             clientController.sendFileContentRequest(fileList.getSelectedValue().toString());
         } else {
@@ -157,22 +163,54 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         }
     }
     
-    private void appendString(String str, JTextPane textPane) {
+    private void appendLockedString(String str, JTextPane textPane) {
         StyledDocument doc = textPane.getStyledDocument();
 
 //  Define a keyword attribute
         SimpleAttributeSet keyWord = new SimpleAttributeSet();
         StyleConstants.setForeground(keyWord, Color.GRAY);
+
+//        StyleConstants.setBackground(keyWord, Color.GRAY);
+//        StyleConstants.setBold(keyWord, true);
+
+//  Add some text
+        try {
+            doc.insertString(doc.getLength(), str, keyWord);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        System.out.println("Appended locked string to mainTextPane\n");
+    }
+ 
+    private void appendUnlockedString(String str, JTextPane textPane) {
+        StyledDocument doc = textPane.getStyledDocument();
+
+//  Define a keyword attribute
+        SimpleAttributeSet keyWord = new SimpleAttributeSet();
+        StyleConstants.setForeground(keyWord, Color.BLACK);
 //        StyleConstants.setBackground(keyWord, Color.YELLOW);
 //        StyleConstants.setBold(keyWord, true);
 
 //  Add some text
         try {
-            doc.insertString(0, "Start of text\n", keyWord);
-            doc.insertString(doc.getLength(), "\nEnd of text", null);
+            doc.insertString(doc.getLength(), str, keyWord);
         } catch (Exception e) {
             System.out.println(e);
         }
+        System.out.println("Appended unlocked string to mainTextPane\n");
+    }
+    
+    private int caretPositionToLineNumber(int caretPosition, JTextPane textPane) {
+        int lineNumber = (caretPosition == 0) ? 1 : 0;
+        try {
+        for (int offset = caretPosition; offset > 0;) {
+            offset = Utilities.getRowStart(textPane, offset) - 1;
+            lineNumber++;
+        }   } catch (BadLocationException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        System.out.println("Current line number: " + lineNumber);
+        return lineNumber;
     }
     
     private void createMenu() {
@@ -201,60 +239,31 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
             }
         });
 
-        menuItem = new JMenuItem("Both text and icon",
-                new ImageIcon("images/middle.gif"));
-        menuItem.setMnemonic(KeyEvent.VK_B);
-        menu.add(menuItem);
-
-        menuItem = new JMenuItem(new ImageIcon("images/middle.gif"));
-        menuItem.setMnemonic(KeyEvent.VK_D);
-        menu.add(menuItem);
-
-//a group of radio button menu items
-        menu.addSeparator();
-        ButtonGroup group = new ButtonGroup();
-        rbMenuItem = new JRadioButtonMenuItem("A radio button menu item");
-        rbMenuItem.setSelected(true);
-        rbMenuItem.setMnemonic(KeyEvent.VK_R);
-        group.add(rbMenuItem);
-        menu.add(rbMenuItem);
-
-        rbMenuItem = new JRadioButtonMenuItem("Another one");
-        rbMenuItem.setMnemonic(KeyEvent.VK_O);
-        group.add(rbMenuItem);
-        menu.add(rbMenuItem);
-
-//a group of check box menu items
-        menu.addSeparator();
-        cbMenuItem = new JCheckBoxMenuItem("A check box menu item");
-        cbMenuItem.setMnemonic(KeyEvent.VK_C);
-        menu.add(cbMenuItem);
-
-        cbMenuItem = new JCheckBoxMenuItem("Another one");
-        cbMenuItem.setMnemonic(KeyEvent.VK_H);
-        menu.add(cbMenuItem);
-
-//a submenu
-        menu.addSeparator();
-        submenu = new JMenu("A submenu");
-        submenu.setMnemonic(KeyEvent.VK_S);
-
-        menuItem = new JMenuItem("An item in the submenu");
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_2, ActionEvent.ALT_MASK));
-        submenu.add(menuItem);
-
-        menuItem = new JMenuItem("Another item");
-        submenu.add(menuItem);
-        menu.add(submenu);
-
 //Build second menu in the menu bar.
-        menu = new JMenu("Another Menu");
-        menu.setMnemonic(KeyEvent.VK_N);
-        menu.getAccessibleContext().setAccessibleDescription(
-                "This menu does nothing");
+        menu = new JMenu("Lock");
         menuBar.add(menu);
         
+        lockMenuItem = new JMenuItem("Lock selected lines",
+                KeyEvent.VK_O);
+        menu.add(lockMenuItem);
+        
+        lockMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //  Here's going selection ranges analyzing part
+                System.out.println("Getting selection line ranges:\n");
+                int startLine = caretPositionToLineNumber(mainTextPane.getSelectionStart(), mainTextPane);
+                int endLine = caretPositionToLineNumber(mainTextPane.getSelectionEnd(), mainTextPane);
+                IClientController clientController = BClientController.build();
+                clientController.sendRangesAndLock(Integer.toString(startLine), Integer.toString(endLine));
+
+//                int start = mainTextPane.getSelectionStart();
+//                int end = mainTextPane.getSelectionEnd();
+//                System.out.println("Selection start: " + start + ", end: " + end);
+                
+//                IClientController clientController = BClientController.build();
+//                clientController.sendFileListRequest();
+            }
+        });
         this.setJMenuBar(menuBar);
     }
     
@@ -412,7 +421,16 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 
     @Override
     public void updateRangesState() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        mainTextPane.setText("");
+        // Getting all document from model and updating textPane
+        IClientModel clientModel = BClientModel.build();
+        String lockedPart1 = clientModel.getLockedPart1();
+        String unlockedPart = clientModel.getUnlockedPart();
+        String lockedPart2 = clientModel.getLockedPart2();
+        appendLockedString(clientModel.getLockedPart1(), mainTextPane);
+        appendUnlockedString(clientModel.getUnlockedPart(), mainTextPane);
+        appendLockedString(clientModel.getLockedPart2(), mainTextPane);
+        mainTextPane.setEditable(true);
     }
 
     @Override
