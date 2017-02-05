@@ -150,6 +150,8 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         if (result == JOptionPane.OK_OPTION) {
             System.out.println("You entered "
                     + fileList.getSelectedValue());
+            IClientController clientController = BClientController.build();
+            clientController.sendFileContentRequest(fileList.getSelectedValue().toString());
         } else {
             System.out.println("User canceled / closed the dialog, result = " + result);
         }
@@ -391,13 +393,16 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         IClientModel clientModel = BClientModel.build();
         String fileString = clientModel.getFileList();
         System.out.println(fileString);
-        String[] fileList = fileString.split("\\r?\\n");
-        showFileOpenDialog(fileList);
+        String[] filenames = fileString.split("\\r?\\n");
+        showFileOpenDialog(filenames);
     }
     
     @Override
     public void updateFileContent() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        IClientModel clientModel = BClientModel.build();
+        String content = clientModel.getFileContent();
+        mainTextPane.setText(content);
+        mainTextPane.setEditable(false);
     }
 
     @Override
