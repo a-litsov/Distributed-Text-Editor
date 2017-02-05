@@ -53,7 +53,11 @@ import javax.swing.text.Utilities;
 public class MainFrame extends javax.swing.JFrame implements IObserver {
     JTextPane mainTextPane;
     JLabel idLabel, statusLabel, previousFilenameLabel;
-    JMenuItem openMenuItem, lockMenuItem;
+    JMenuItem openMenuItem, saveMenuItem, lockMenuItem, unlockMenuItem;
+    boolean isLocked = false; // Current state of document
+    int startLineNumber, endLineNumber;
+    int startSymbolNumber, endSymbolNumber;
+
     /**
      * Creates new form MainFrame
      */
@@ -239,6 +243,24 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
             }
         });
 
+        saveMenuItem = new JMenuItem("Save",
+                KeyEvent.VK_O);
+        menu.add(saveMenuItem);
+
+        saveMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                IClientController clientController = BClientController.build();
+                String content = "";
+                try {
+                    content = mainTextPane.getDocument().getText(startSymbolNumber, endSymbolNumber - startSymbolNumber);
+                } catch (BadLocationException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                System.out.println("Text to save sended, here it is:" + content);
+                clientController.sendSaveRequest(content);
+            }
+        });
+        
 //Build second menu in the menu bar.
         menu = new JMenu("Lock");
         menuBar.add(menu);
@@ -250,11 +272,17 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         lockMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //  Here's going selection ranges analyzing part
-                System.out.println("Getting selection line ranges:\n");
-                int startLine = caretPositionToLineNumber(mainTextPane.getSelectionStart(), mainTextPane);
-                int endLine = caretPositionToLineNumber(mainTextPane.getSelectionEnd(), mainTextPane);
+                System.out.println("Getting selected lines range:\n");
+                try {
+                    startSymbolNumber = Utilities.getRowStart(mainTextPane, mainTextPane.getSelectionStart());
+                    endSymbolNumber = Utilities.getRowEnd(mainTextPane, mainTextPane.getSelectionEnd());
+                } catch (BadLocationException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                startLineNumber = caretPositionToLineNumber(mainTextPane.getSelectionStart(), mainTextPane);
+                endLineNumber = caretPositionToLineNumber(mainTextPane.getSelectionEnd(), mainTextPane);
                 IClientController clientController = BClientController.build();
-                clientController.sendRangesAndLock(Integer.toString(startLine), Integer.toString(endLine));
+                clientController.sendRangesAndLock(Integer.toString(startLineNumber), Integer.toString(endLineNumber));
 
 //                int start = mainTextPane.getSelectionStart();
 //                int end = mainTextPane.getSelectionEnd();
@@ -422,6 +450,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     @Override
     public void updateRangesState() {
         mainTextPane.setText("");
+        isLocked = true;
         // Getting all document from model and updating textPane
         IClientModel clientModel = BClientModel.build();
         String lockedPart1 = clientModel.getLockedPart1();
