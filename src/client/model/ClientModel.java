@@ -206,7 +206,10 @@ public class ClientModel implements IClientModel{
             }
             TextData[switcher] += ArrayContent[i] + "\n";
         }
-        TextData[2] = TextData[2].substring(0, TextData[2].length() - 1);
+        if (!TextData[2].isEmpty())
+            TextData[2] = TextData[2].substring(0, TextData[2].length() - 1);
+        else
+            TextData[1] = TextData[1].substring(0, TextData[1].length() - 1);
         lockedPart1 = TextData[0];
         unlockedPart = TextData[1];
         lockedPart2 = TextData[2];

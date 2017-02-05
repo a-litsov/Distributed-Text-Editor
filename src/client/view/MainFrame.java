@@ -57,6 +57,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     boolean isLocked = false; // Current state of document
     int startLineNumber, endLineNumber;
     int startSymbolNumber, endSymbolNumber;
+    int symbolsCount;
 
     /**
      * Creates new form MainFrame
@@ -252,12 +253,24 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                 IClientController clientController = BClientController.build();
                 String content = "";
                 try {
-                    content = mainTextPane.getDocument().getText(startSymbolNumber, endSymbolNumber - startSymbolNumber);
+                    content = mainTextPane.getDocument().getText(startSymbolNumber, endSymbolNumber - startSymbolNumber + 1);
                 } catch (BadLocationException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 System.out.println("Text to save sended, here it is:" + content);
                 clientController.sendSaveRequest(content);
+            }
+        });
+        
+        JMenuItem closeMenuItem = new JMenuItem("Close",
+            KeyEvent.VK_O);
+        menu.add(closeMenuItem);
+        
+        closeMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                IClientController clientController = BClientController.build();
+                clientController.sendUnlocking();
+                System.exit(0);
             }
         });
         
@@ -276,6 +289,9 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                 try {
                     startSymbolNumber = Utilities.getRowStart(mainTextPane, mainTextPane.getSelectionStart());
                     endSymbolNumber = Utilities.getRowEnd(mainTextPane, mainTextPane.getSelectionEnd());
+                    // By default JTextPane adds newline charater at the end of each paragraph
+                    if (endSymbolNumber == symbolsCount)
+                        endSymbolNumber--;
                 } catch (BadLocationException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -292,6 +308,20 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 //                clientController.sendFileListRequest();
             }
         });
+        
+        unlockMenuItem = new JMenuItem("Unlock",
+                KeyEvent.VK_O);
+        menu.add(unlockMenuItem);
+
+        unlockMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                IClientController clientController = BClientController.build();
+                clientController.sendUnlocking();
+                System.out.println("Send unlocking message");
+
+            }
+        });
+        
         this.setJMenuBar(menuBar);
     }
     
@@ -440,11 +470,13 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         String content = clientModel.getFileContent();
         mainTextPane.setText(content);
         mainTextPane.setEditable(false);
+        symbolsCount = content.length();
     }
 
     @Override
     public void updateSavingState() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        statusLabel.setText("Successufly saved current file!");
+        System.out.println("File saved on server");
     }
 
     @Override
