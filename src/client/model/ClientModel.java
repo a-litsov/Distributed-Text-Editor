@@ -7,6 +7,7 @@ package client.model;
 
 import client.view.IObserver;
 import client.MainClientFormMVC;
+import client.view.TextFragment;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -19,6 +20,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.text.BadLocationException;
+import server.model.Range;
 /**
  *
  * @author evgen
@@ -40,6 +43,7 @@ public class ClientModel implements IClientModel{
     String prevFilename = "";
     String start, end;
     String lockedPart1, unlockedPart, lockedPart2;
+    ArrayList<TextFragment> contentFragments = new ArrayList<TextFragment>();
     String message;//Строка, содержащая сообщение
     boolean f = true;
     boolean flag = false;//Указывает на то, была передача данных, или нет
@@ -213,6 +217,147 @@ public class ClientModel implements IClientModel{
         lockedPart1 = TextData[0];
         unlockedPart = TextData[1];
         lockedPart2 = TextData[2];
+        try {
+            // new part, all above to delete
+            loadFileWithMyLocks();
+        } catch (BadLocationException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private ArrayList<Range> getSymbolRanges(String content, ArrayList<Range> lineRanges) {
+        if (lineRanges.size() > 0 && content.length() != 0) {
+            ArrayList<Range> symbolRanges = new ArrayList<Range>();
+            Range tmp;
+            int currentStartPosition = 0, currentEndPosition, i;
+            int lineNumber = 0;
+            for (int k = 0; k < lineRanges.size(); k++) {
+                for (i = 0; lineNumber < lineRanges.get(k).getStart(); i = content.indexOf("\n", i + 1), lineNumber++) {
+                    if (lineNumber == 0)
+                        currentStartPosition = 0;
+                    else
+                        currentStartPosition = i + 1;
+                }
+                String tmpContent = content + "\n";
+                for (i = currentStartPosition; lineNumber <= lineRanges.get(k).getEnd(); i = tmpContent.indexOf("\n", i + 1), lineNumber++);
+                currentEndPosition = i - 1;
+                tmp = new Range(currentStartPosition, currentEndPosition);
+                symbolRanges.add(tmp);
+            }
+            return symbolRanges;
+        } else {
+            System.out.println("Something gone wrong in getSymbolRanges method");
+            return null;
+        }
+    }
+
+    private void loadFileWithMyLocks() throws BadLocationException {
+        contentFragments.clear();
+        int start_ = Integer.parseInt(start);
+        int end_ = Integer.parseInt(end);
+        Range tmp = new Range(start_, end_);
+        ArrayList<Range> lineRanges = new ArrayList<Range>();
+        lineRanges.add(tmp);
+        System.out.println("loadFileContent begins");
+        if (lineRanges.size() > 0) {
+            int start, end;
+            ArrayList<Range> symbolRanges = getSymbolRanges(fileContent, lineRanges);
+            if (symbolRanges != null) {
+                // adding first locked part
+                end = symbolRanges.get(0).getStart();
+                TextFragment tmpFragment = new TextFragment();
+                tmpFragment.text = fileContent.substring(0, end);
+                tmpFragment.isLocked = true;
+                contentFragments.add(tmpFragment);
+                // adding unlocked parts
+                for (int i = 0; i < symbolRanges.size(); i++) {
+                    start = symbolRanges.get(i).getStart();
+                    end = symbolRanges.get(i).getEnd() + 1;
+                    tmpFragment = new TextFragment();
+                    tmpFragment.text = fileContent.substring(start, end);
+                    tmpFragment.isLocked = false;
+                    contentFragments.add(tmpFragment);
+                    if (i + 1 < symbolRanges.size()) {
+                        start = end;
+                        end = symbolRanges.get(i).getStart() + 1;
+                        tmpFragment = new TextFragment();
+                        tmpFragment.text = fileContent.substring(start, end);
+                        tmpFragment.isLocked = true;
+                        contentFragments.add(tmpFragment);
+                    } else {
+                        // check if file end
+                        tmpFragment = new TextFragment();
+                        tmpFragment.text = fileContent.substring(end, fileContent.length());
+                        tmpFragment.isLocked = true;
+                        contentFragments.add(tmpFragment);
+                    }
+                }
+            } else {
+                System.out.println("symbolRanges is null, error");
+            }
+        } else {
+            TextFragment tmpFragment = new TextFragment();
+            tmpFragment.text = fileContent;
+            tmpFragment.isLocked = true;
+            contentFragments.add(tmpFragment);
+            System.out.println("lineRanges is empty");
+        }
+        System.out.println("loadFileContent completed");       
+    }
+    
+    // loads document with styles
+    public void loadFileContent() throws BadLocationException {
+        contentFragments.clear();
+        int start_ = Integer.parseInt(start);
+        int end_ = Integer.parseInt(end);
+        Range tmp = new Range(start_, end_);
+        ArrayList<Range> lineRanges = new ArrayList<Range>();
+        lineRanges.add(tmp);
+        System.out.println("loadFileContent begins");
+        if (lineRanges.size() > 0) {
+            int start, end;
+            ArrayList<Range> symbolRanges = getSymbolRanges(fileContent, lineRanges);
+            if (symbolRanges != null) {
+                // adding first unlocked part
+                end = symbolRanges.get(0).getStart();
+                TextFragment tmpFragment = new TextFragment();
+                tmpFragment.text = fileContent.substring(0, end);
+                tmpFragment.isLocked = false;
+                contentFragments.add(tmpFragment);
+                // adding locked parts
+                for (int i = 0; i < symbolRanges.size(); i++) {
+                    start = symbolRanges.get(i).getStart();
+                    end = symbolRanges.get(i).getEnd()+1;
+                    tmpFragment = new TextFragment();
+                    tmpFragment.text = fileContent.substring(start, end);
+                    tmpFragment.isLocked = true;
+                    contentFragments.add(tmpFragment);
+                    if (i + 1 < symbolRanges.size()) {
+                        start = end;
+                        end = symbolRanges.get(i).getStart()+1;
+                        tmpFragment = new TextFragment();
+                        tmpFragment.text = fileContent.substring(start, end);
+                        tmpFragment.isLocked = false;
+                        contentFragments.add(tmpFragment);
+                    } else {
+                        // check if file end
+                        tmpFragment = new TextFragment();
+                        tmpFragment.text = fileContent.substring(end, fileContent.length());
+                        tmpFragment.isLocked = false;
+                        contentFragments.add(tmpFragment);
+                    }
+                }
+            } else {
+                System.out.println("symbolRanges is null, error");
+            }
+        } else {
+            TextFragment tmpFragment = new TextFragment();
+            tmpFragment.text = fileContent;
+            tmpFragment.isLocked = false;
+            contentFragments.add(tmpFragment);
+            System.out.println("lineRanges is empty");
+        }
+        System.out.println("loadFileContent completed");
     }
     
     @Override
@@ -321,7 +466,15 @@ public class ClientModel implements IClientModel{
     
     private void getFileContentFromServer() {
         try {
+            // to delete
             fileContent = dis.readUTF();
+            // part with fragments потом добавить диапазоны локов от серва (сейчас они и не приходят)
+            TextFragment tmpFragment = new TextFragment();
+            tmpFragment.text = fileContent;
+            tmpFragment.isLocked = false;
+            contentFragments.clear();
+            contentFragments.add(tmpFragment);
+            // to delete
             lockedPart1 = ""; lockedPart2 = "";
         } catch (IOException ex) {
             Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
@@ -379,5 +532,9 @@ public class ClientModel implements IClientModel{
     public void addObserver(IObserver o)
     {
         observers.add(o);
+    }
+    
+    public ArrayList<TextFragment> getTextFragments() {
+        return contentFragments;
     }
 }

@@ -41,11 +41,15 @@ import client.model.IClientModel;
 import client.controller.BClientController;
 import client.controller.IClientController;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JList;
+import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Utilities;
+import server.model.Range;
 /**
  *
  * @author al1as
@@ -54,6 +58,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     JTextPane mainTextPane;
     JLabel idLabel, statusLabel, previousFilenameLabel;
     JMenuItem openMenuItem, saveMenuItem, lockMenuItem, unlockMenuItem;
+    StyledDocumentWithLocks mainDocument = new StyledDocumentWithLocks();
     boolean isLocked = false; // Current state of document
     int startLineNumber, endLineNumber;
     int startSymbolNumber, endSymbolNumber;
@@ -92,6 +97,8 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     
     private void createNumberedTextPane() {
         mainTextPane = new JTextPane();
+        // adding locked document
+        mainTextPane.setDocument(mainDocument);
         mainTextPane.setText("Hello there, I'm Ernie!");
 
         JPanel panel = new JPanel(new BorderLayout());
@@ -101,7 +108,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         paneScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         TextLineNumber tln = new TextLineNumber(mainTextPane);
         paneScrollPane.setRowHeaderView(tln);
-        this.getContentPane().add(paneScrollPane, BorderLayout.CENTER);
+        this.getContentPane().add(paneScrollPane, BorderLayout.CENTER);               
     }
     
     private void createBottomLabels() {
@@ -292,11 +299,12 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                     // By default JTextPane adds newline charater at the end of each paragraph
                     if (endSymbolNumber == symbolsCount)
                         endSymbolNumber--;
+                    startLineNumber = caretPositionToLineNumber(mainTextPane.getSelectionStart(), mainTextPane);
+                    endLineNumber = caretPositionToLineNumber(mainTextPane.getSelectionEnd(), mainTextPane);
                 } catch (BadLocationException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                startLineNumber = caretPositionToLineNumber(mainTextPane.getSelectionStart(), mainTextPane);
-                endLineNumber = caretPositionToLineNumber(mainTextPane.getSelectionEnd(), mainTextPane);
+               
                 IClientController clientController = BClientController.build();
                 clientController.sendRangesAndLock(Integer.toString(startLineNumber), Integer.toString(endLineNumber));
 
@@ -468,7 +476,12 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     public void updateFileContent() {
         IClientModel clientModel = BClientModel.build();
         String content = clientModel.getFileContent();
-        mainTextPane.setText(content);
+        ArrayList<TextFragment> fragments = clientModel.getTextFragments();
+        try {
+            mainDocument.loadFileContent(fragments);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
         mainTextPane.setEditable(false);
         symbolsCount = content.length();
     }
@@ -481,17 +494,27 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 
     @Override
     public void updateRangesState() {
-        mainTextPane.setText("");
-        isLocked = true;
         // Getting all document from model and updating textPane
         IClientModel clientModel = BClientModel.build();
         String lockedPart1 = clientModel.getLockedPart1();
         String unlockedPart = clientModel.getUnlockedPart();
         String lockedPart2 = clientModel.getLockedPart2();
-        appendLockedString(clientModel.getLockedPart1(), mainTextPane);
-        appendUnlockedString(clientModel.getUnlockedPart(), mainTextPane);
-        appendLockedString(clientModel.getLockedPart2(), mainTextPane);
+//        appendLockedString(clientModel.getLockedPart1(), mainTextPane);
+//        appendUnlockedString(clientModel.getUnlockedPart(), mainTextPane);
+//        appendLockedString(clientModel.getLockedPart2(), mainTextPane);
+        
+        String finalString = lockedPart1 + unlockedPart + lockedPart2;
+        Range tmp = new Range(startSymbolNumber, endSymbolNumber);
+        ArrayList<Range> ranges = new ArrayList<Range>();
+        ranges.add(tmp);
+        try {
+            mainDocument.loadFileContent(clientModel.getTextFragments());
+            mainDocument.setLockedRange(tmp);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
         mainTextPane.setEditable(true);
+
     }
 
     @Override

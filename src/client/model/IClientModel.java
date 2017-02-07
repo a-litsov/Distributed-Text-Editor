@@ -6,6 +6,8 @@
 package client.model;
 
 import client.view.IObserver;
+import client.view.TextFragment;
+import java.util.ArrayList;
 
 /**
  *
@@ -30,5 +32,6 @@ public interface IClientModel {
     String getLockedPart1();
     String getUnlockedPart();
     String getLockedPart2();
+    ArrayList<TextFragment> getTextFragments();
     void addObserver(IObserver o);
 }

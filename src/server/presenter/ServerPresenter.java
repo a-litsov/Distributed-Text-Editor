@@ -84,7 +84,8 @@ class ServerPresenter extends Thread implements IServerPresenter {
                 String s = v.getString();
 
                 if(s.equals("Ranges sending")) {
-                    sendFileContent(filename);
+//                    sendFileContent(filename);
+//                  Здесь не имеет смысла посылать контент, т.к. нужно сделать онлайн-обновление локов и контента у всех
                     GetRanges();
                     m.SendToDB(element.getUsername(), filename);
                 }
