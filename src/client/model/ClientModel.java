@@ -44,11 +44,18 @@ public class ClientModel implements IClientModel{
     String start, end;
     String lockedPart1, unlockedPart, lockedPart2;
     ArrayList<TextFragment> contentFragments = new ArrayList<TextFragment>();
+    ArrayList<Range> symbolLocks = new ArrayList<Range>();
+    int endLineChanging = 0;
     String message;//Строка, содержащая сообщение
     boolean f = true;
     boolean flag = false;//Указывает на то, была передача данных, или нет
     
     ArrayList<IObserver> observers = new ArrayList<>();
+    
+    public ClientModel() {
+        Range tmp = new Range(0, 0);
+        symbolLocks.add(tmp);
+    }
     
     @Override
     public String getId() {
@@ -410,14 +417,17 @@ public class ClientModel implements IClientModel{
     }
     
     @Override
-    public void sendRangesAndLock(String start, String end) {
+    public void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol) {
         try {
-            this.start = start;
-            this.end = end;
+            this.start = startLine;
+            this.end = endLine;
             if (!testRange()) {
                 invalidRange();
                 return;
             }        
+            Range tmp = new Range(startSymbol, endSymbol);
+            symbolLocks.clear();
+            symbolLocks.add(tmp);
             //Отправляем выбранный диапазон
             dos.writeUTF("Ranges sending");
             dos.writeUTF(start);
@@ -426,6 +436,13 @@ public class ClientModel implements IClientModel{
             Logger.getLogger(MainClientFormMVC.class.getName()).log(Level.SEVERE, null, ex);
 
         }
+    }
+    
+    @Override
+    public void incEndLock(int value) {
+        // extendable: if we need any lock, just pass it number by parameter
+        Range current = symbolLocks.get(0);
+        current.setEnd(current.getEnd()+value);
     }
     
     @Override
@@ -451,6 +468,8 @@ public class ClientModel implements IClientModel{
         try {
             dos.writeUTF("File saving");
             dos.writeUTF(content);
+            String endLineChange = String.valueOf(endLineChanging);
+            dos.writeUTF(endLineChange);
         } catch (IOException ex) {
                 Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex); 
         }
@@ -536,5 +555,20 @@ public class ClientModel implements IClientModel{
     
     public ArrayList<TextFragment> getTextFragments() {
         return contentFragments;
+    }
+
+    @Override
+    public int getStartSymbolRange() {
+        return symbolLocks.get(0).getStart();
+    }
+
+    @Override
+    public int getEndSymbolRange() {
+        return symbolLocks.get(0).getEnd();
+    }
+
+    @Override
+    public void incEndLineChanging(int value) {
+        endLineChanging += value;
     }
 }

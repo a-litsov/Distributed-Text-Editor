@@ -91,7 +91,8 @@ public class ServerModel implements IServerModel {
         {
             clients = new ArrayList();
             clients.add(element);
-            allFiles.put(filename, clients);    
+            allFiles.put(filename, clients); 
+            allClient.put(element.getUUID(), element);
         } else {
             int start = element.getStart();
             int end = element.getEnd();
@@ -105,8 +106,10 @@ public class ServerModel implements IServerModel {
                     break;
                 }              
             }
-            if(f)
+            if(f) {
                 clients.add(element);
+                allClient.put(element.getUUID(), element);
+            }
         }
         if(f)
         {
@@ -128,6 +131,7 @@ public class ServerModel implements IServerModel {
             allFiles.remove(filename);
         }
         delFromTable(filename, element);
+        allClient.remove(element.getUUID());
     }
     
     @Override
@@ -239,7 +243,8 @@ public class ServerModel implements IServerModel {
     }
     
     @Override
-    public void Save(String LockedContent, String filename, FileElement element) {
+    public void Save(String LockedContent, String filename, UUID id) {
+        FileElement element = allClient.get(id);
         String fullname = "Shared/" + filename;
         String FileContent = getFileContent(filename);
         String[] ArrayContent = FileContent.split("\n");
@@ -290,5 +295,18 @@ public class ServerModel implements IServerModel {
     @Override
     public void addPresenter(IServerPresenter p) {
         list_p.add(p);
+    }
+
+    @Override
+    public void updateRanges(int value, String filename, int end, UUID id) {
+        // change others
+        ArrayList<FileElement> elements = allFiles.get(filename);
+        for(int i = 0; i < elements.size(); i++) {
+            FileElement curElement = elements.get(i);
+            if(curElement.getStart() >= end) {
+                curElement.setStart(curElement.getStart() + value);
+                curElement.setEnd(curElement.getEnd() + value);
+            }
+        }
     }
 }

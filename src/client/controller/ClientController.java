@@ -35,9 +35,9 @@ public class ClientController implements IClientController {
     }
 
     @Override
-    public void sendRangesAndLock(String start, String end) {
+    public void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol) {
         clientModel = BClientModel.build();
-        clientModel.sendRangesAndLock(start, end);
+        clientModel.sendRangesAndLock(startLine, endLine, startSymbol, endSymbol);
     }
 
     @Override
@@ -56,5 +56,29 @@ public class ClientController implements IClientController {
     public void connect() {
         clientModel = BClientModel.build();
         clientModel.connect();
+    }
+    
+    @Override
+    public void incEndLock(int value) {
+        clientModel = BClientModel.build();
+        clientModel.incEndLock(value);
+    }
+
+    @Override
+    public int getStartSymbolRange() {
+        clientModel = BClientModel.build();
+        return clientModel.getStartSymbolRange();
+    }
+
+    @Override
+    public int getEndSymbolRange() {
+        clientModel = BClientModel.build();
+        return clientModel.getEndSymbolRange();
+    }
+
+    @Override
+    public void incEndLineChanging(int value) {
+        clientModel = BClientModel.build();
+        clientModel.incEndLineChanging(value);
     }
 }

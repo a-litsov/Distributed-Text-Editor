@@ -260,7 +260,9 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                 IClientController clientController = BClientController.build();
                 String content = "";
                 try {
-                    content = mainTextPane.getDocument().getText(startSymbolNumber, endSymbolNumber - startSymbolNumber + 1);
+                    int startSymbol = clientController.getStartSymbolRange();
+                    int endSymbol = clientController.getEndSymbolRange();
+                    content = mainTextPane.getDocument().getText(startSymbol, endSymbol - startSymbol + 1);
                 } catch (BadLocationException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -306,7 +308,8 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                 }
                
                 IClientController clientController = BClientController.build();
-                clientController.sendRangesAndLock(Integer.toString(startLineNumber), Integer.toString(endLineNumber));
+                clientController.sendRangesAndLock(Integer.toString(startLineNumber), Integer.toString(endLineNumber), startSymbolNumber,
+                        endSymbolNumber);
 
 //                int start = mainTextPane.getSelectionStart();
 //                int end = mainTextPane.getSelectionEnd();
@@ -509,7 +512,6 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         ranges.add(tmp);
         try {
             mainDocument.loadFileContent(clientModel.getTextFragments());
-            mainDocument.setLockedRange(tmp);
         } catch (BadLocationException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }

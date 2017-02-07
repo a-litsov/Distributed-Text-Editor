@@ -220,7 +220,7 @@ public class MainClientFormMVC extends javax.swing.JFrame {
         String end = endField.getText();
 
         IClientController clientController = BClientController.build();
-        clientController.sendRangesAndLock(start, end);
+//        clientController.sendRangesAndLock(start, end);
     }//GEN-LAST:event_lockButtonActionPerformed
 
     private void unlockButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unlockButtonActionPerformed

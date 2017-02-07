@@ -5,6 +5,8 @@
  */
 package client.view;
 
+import client.controller.BClientController;
+import client.controller.IClientController;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -26,8 +28,6 @@ import server.model.Range;
 public class StyledDocumentWithLocks extends DefaultStyledDocument
 {
     SimpleAttributeSet lockAttributeSet = new SimpleAttributeSet();
-    Range lockedSymbolRange = new Range(0, 0);
-    Range lockedLinesRange = new Range(0, 0);
     boolean isActivated = false;
     
     public StyledDocumentWithLocks() 
@@ -35,30 +35,36 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
         StyleConstants.setForeground(lockAttributeSet, Color.GRAY);
     }
     
-    public void setLockedRange(Range lockedSymbolRange) 
-    {
-        this.lockedSymbolRange = lockedSymbolRange;
-    }
-
-    @Override
-    public void insertString(final int offset, final String string, AttributeSet a) throws BadLocationException 
-    {
-        if (offset >= lockedSymbolRange.getStart() && offset + string.length() <= lockedSymbolRange.getEnd())
-            super.insertString(offset, string, null);
-    }
-    
     public void remove(final int offset, final int length) throws BadLocationException 
     {
-        if (offset >= lockedSymbolRange.getStart() &&  offset + length <= lockedSymbolRange.getEnd()) 
+        IClientController controller = BClientController.build();
+        if (offset >= controller.getStartSymbolRange() &&  offset + length <= controller.getEndSymbolRange()) {
+                controller.incEndLock(-length);
+                String deletedContent = this.getText(offset, length);
+                
+                for(int i = 0; i < length; i++) {
+                    if(deletedContent.charAt(i) == '\n')
+                        controller.incEndLineChanging(-1);
+                }
                 super.remove(offset, length);
+        }
     }
 
     @Override
     public void replace(final int offset, final int length, final String text, AttributeSet a) throws BadLocationException 
     {
-        if (offset >= lockedSymbolRange.getStart() && offset - length + text.length() <= lockedSymbolRange.getEnd() &&
-                offset + length <= lockedSymbolRange.getEnd())
+        IClientController controller = BClientController.build();
+        if (offset >= controller.getStartSymbolRange() && offset + length <= controller.getEndSymbolRange()) {
+            controller.incEndLock(text.length()-length);
+            String deletedContent = this.getText(offset, length);
+            for(int i = 0; i < length; i++)
+                if(deletedContent.charAt(i) == '\n')
+                    controller.incEndLineChanging(-1);
+            for(int i = 0; i < text.length(); i++)
+                if(text.charAt(i) == '\n')
+                    controller.incEndLineChanging(1);
             super.replace(offset, length, text, null);
+        }
     }
     
     // loads document with styles

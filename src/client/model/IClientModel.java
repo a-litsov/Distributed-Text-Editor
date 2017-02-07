@@ -20,9 +20,11 @@ public interface IClientModel {
     void sendName(String name);
     void sendFileListRequest();
     void sendFileContentRequest(String filename);
-    void sendRangesAndLock(String start, String end);
+    void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol);
     void sendUnlocking();
     void sendSaveRequest(String content);
+    void incEndLock(int value);
+    void incEndLineChanging(int value);
     
     
     String getId();
@@ -32,6 +34,8 @@ public interface IClientModel {
     String getLockedPart1();
     String getUnlockedPart();
     String getLockedPart2();
+    int getStartSymbolRange();
+    int getEndSymbolRange();
     ArrayList<TextFragment> getTextFragments();
     void addObserver(IObserver o);
 }

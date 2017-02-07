@@ -6,6 +6,7 @@
 package server.model;
 
 import java.io.File;
+import java.util.UUID;
 import server.presenter.IServerPresenter;
 
 /**
@@ -23,9 +24,10 @@ public interface IServerModel {
     public String listFilesForFolder(final File folder);
     public String getFileContent(String FileName);
     public void removeName(String username);
-    public void Save(String LockedContent, String filename, FileElement element);
+    public void Save(String LockedContent, String filename, UUID id);
     public String getMessage();
     public void sendMessage(String message);
     public void refresh();
     public void addPresenter(IServerPresenter p);
+    public void updateRanges(int value, String filename, int end, UUID id);
 }

@@ -15,9 +15,12 @@ public interface IClientController {
     void sendName(String name);
     void sendFileListRequest();
     void sendFileContentRequest(String filename);
-    void sendRangesAndLock(String start, String end);
+    void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol);
     void sendUnlocking();
     void sendSaveRequest(String content);
-        
+    void incEndLock(int value);
+    int getStartSymbolRange();
+    int getEndSymbolRange();
+    void incEndLineChanging(int value);
     void connect();
 }
