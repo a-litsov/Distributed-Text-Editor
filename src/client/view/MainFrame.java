@@ -128,30 +128,38 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     
     private void showLoginDialog() {
         // Create dialog and show
-        JTextField firstName = new JTextField();
-        JTextField lastName = new JTextField();
-        JPasswordField password = new JPasswordField();
+        JTextField login = new JTextField(10);
+        JPasswordField password = new JPasswordField(10);
         final JComponent[] inputs = new JComponent[]{
-            new JLabel("First"),
-            firstName,
-            new JLabel("Last"),
-            lastName,
+            new JLabel("Login"),
+            login,
             new JLabel("Password"),
             password
         };
-        String dialogName = "Login before usage, please";
-        int result = JOptionPane.showConfirmDialog(null, inputs, dialogName, JOptionPane.PLAIN_MESSAGE);
-        if (result == JOptionPane.OK_OPTION) {
+        Object[] options = { "Login", "Register" };
+        String dialogName = "Login or register before usage, please";
+        JPanel panel = new JPanel();
+        for(int i = 0; i < 4; i++)
+            panel.add(inputs[i]);
+        int result = JOptionPane.showOptionDialog(null, panel, dialogName,
+        JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
+        null, options, options[0]);
+        if (result == JOptionPane.YES_OPTION){
             System.out.println("You entered "
-                    + firstName.getText() + ", "
-//                    + lastName.getText() + ", "
+                    + login.getText() + ", "
+                    //                    + lastName.getText() + ", "
                     + password.getPassword());
             // Sending to server
             IClientController controller = BClientController.build();
-            controller.sendName(firstName.getText());
+            controller.sendName(login.getText());
         } else {
-            System.out.println("User canceled / closed the dialog, result = " + result);
-            System.exit(1);
+            if(result == JOptionPane.NO_OPTION) {
+                // add here method for registration
+            } else {
+                // user closed dialog
+                System.out.println("User canceled / closed the dialog, result = " + result);
+                System.exit(1);
+            }
         }
     }
     
