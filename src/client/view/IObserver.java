@@ -17,5 +17,7 @@ public interface IObserver {
     void updateSavingState();
     void updateRangesState();
     void invalidUsername();
+    void invalidRegistration();
+    void updateRegistrationStatus();
     void invalidRange();
 }

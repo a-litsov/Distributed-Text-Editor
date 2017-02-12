@@ -12,7 +12,8 @@ import client.view.IObserver;
  * @author al1as
  */
 public interface IClientController {
-    void sendName(String name);
+    void loginUser(String name, String pass);
+    void registerUser(String login, String pass);
     void sendFileListRequest();
     void sendFileContentRequest(String filename);
     void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol);

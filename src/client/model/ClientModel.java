@@ -6,7 +6,6 @@
 package client.model;
 
 import client.view.IObserver;
-import client.MainClientFormMVC;
 import client.view.TextFragment;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -95,7 +94,7 @@ public class ClientModel implements IClientModel{
         try {
             ip = InetAddress.getLocalHost();
         } catch (UnknownHostException ex) {
-            Logger.getLogger(MainClientFormMVC.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             cs = new Socket(ip, port);
@@ -144,6 +143,15 @@ public class ClientModel implements IClientModel{
                                 invalidUsername();
                             }
                             
+                            if(s.equals("Registration successful")) {
+                                username = dis.readUTF();
+                                updateRegistrationStatusObs();    
+                            }
+                            
+                            if(s.equals("Error! Failed registration!")) {
+                                invalidRegistration();
+                            }
+                            
                             
                             if(s.equals("File list sending")) {
                                 getFileListFromServer();
@@ -176,15 +184,16 @@ public class ClientModel implements IClientModel{
             }.start();
            
         } catch (IOException ex) {
-            Logger.getLogger(MainClientFormMVC.class.getName()).log(Level.SEVERE, null, ex);   
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);   
         } 
     }
     
     @Override
-    public void sendName(String name) {
+    public void loginUser(String name, String pass) {
         try {
-            dos.writeUTF("Name sending");
+            dos.writeUTF("User login");
             dos.writeUTF(name);
+            dos.writeUTF(pass);
             username = name;
         } catch (IOException ex) {
                 Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex); 
@@ -433,7 +442,7 @@ public class ClientModel implements IClientModel{
             dos.writeUTF(start);
             dos.writeUTF(end);
         } catch (IOException ex) {
-            Logger.getLogger(MainClientFormMVC.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
 
         }
     }
@@ -451,7 +460,7 @@ public class ClientModel implements IClientModel{
             dos.writeUTF("Unlocking");
         }
         catch (IOException ex) {
-                Logger.getLogger(MainClientFormMVC.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -459,7 +468,7 @@ public class ClientModel implements IClientModel{
         try {
             dos.writeUTF("end");
         } catch (IOException ex) {
-            Logger.getLogger(MainClientFormMVC.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -503,6 +512,12 @@ public class ClientModel implements IClientModel{
     void invalidUsername() {
         for (IObserver o: observers) {
             o.invalidUsername();
+        }
+    }
+    
+    void invalidRegistration() {
+        for (IObserver o: observers) {
+            o.invalidRegistration();
         }
     }
     
@@ -570,5 +585,29 @@ public class ClientModel implements IClientModel{
     @Override
     public void incEndLineChanging(int value) {
         endLineChanging += value;
+    }
+
+    @Override
+    public void registerUser(String login, String pass) {
+        try {
+            dos.writeUTF("User registration");
+            dos.writeUTF(login);
+            dos.writeUTF(pass);
+            username = login;
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void updateRegistrationStatusObs() {
+        for (IObserver o : observers) {
+            o.updateRegistrationStatus();
+        }
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
     }
 }

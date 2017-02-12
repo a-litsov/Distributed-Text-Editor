@@ -17,7 +17,9 @@ public interface IClientModel {
     public void connect();
     
     
-    void sendName(String name);
+    void loginUser(String name, String pass);
+    void registerUser(String login, String pass);
+    void updateRegistrationStatusObs(); 
     void sendFileListRequest();
     void sendFileContentRequest(String filename);
     void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol);
@@ -28,6 +30,7 @@ public interface IClientModel {
     
     
     String getId();
+    String getUsername();
     String getPrevFilename();
     String getFileList();
     String getFileContent();

@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -163,6 +164,7 @@ public class ServerModel implements IServerModel {
     
     @Override
     public void SendToDB(String username, String filename) {
+        // not works anymore
         Connection c = null;
         Statement stmt = null;
         try {
@@ -308,5 +310,80 @@ public class ServerModel implements IServerModel {
                 curElement.setEnd(curElement.getEnd() + value);
             }
         }
+    }
+
+    @Override
+    public boolean registerUser(String login, String pass, StringBuilder filename) {
+        Connection c = null;
+        PreparedStatement stmt = null;
+        filename.append("Unknown");
+        String dbFilename = "users.db";
+        boolean result = false;
+        try {
+            Class.forName("org.sqlite.JDBC");
+            c = DriverManager.getConnection("jdbc:sqlite:" + dbFilename);
+            c.setAutoCommit(false);
+            System.out.println("Opened database successfully");
+
+            // Checking if user already exists
+            stmt = c.prepareStatement("select * from users where Login=?");
+            stmt.setString(1, login);
+            ResultSet rs = stmt.executeQuery();
+            if (!rs.next()) {
+                result = true;
+            }
+            rs.close();
+            stmt.close();
+            
+            // if not then adding him in table
+            if  (result) {
+                stmt = c.prepareStatement("insert into users values(?,?,?)");
+                stmt.setString(1, login);
+                stmt.setString(2, pass);
+                stmt.setString(3, filename.toString());
+                stmt.executeUpdate();
+                stmt.close();
+                c.commit();
+            }
+            c.close();
+        } catch (Exception e) {
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+            System.exit(0);
+        }
+        System.out.println("Registration done");
+        return result;
+    }
+
+    @Override
+    public boolean loginUser(String login, String pass, StringBuilder filename) {
+        Connection c = null;
+        PreparedStatement stmt = null;
+        String dbFilename = "users.db";
+        boolean result = false;
+        try {
+            Class.forName("org.sqlite.JDBC");
+            c = DriverManager.getConnection("jdbc:sqlite:" + dbFilename);
+            c.setAutoCommit(false);
+            System.out.println("Opened database successfully");
+
+            // Checking if user already exists
+            stmt = c.prepareStatement("select * from users where Login=? and Pass=?");
+            stmt.setString(1, login);
+            stmt.setString(2, pass);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                filename.append(rs.getString("Filename"));
+                result = true;
+            }
+            rs.close();
+            stmt.close();
+
+            c.commit();
+            c.close();
+        } catch (Exception e) {
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+            System.exit(0);
+        }
+        return result;
     }
 }

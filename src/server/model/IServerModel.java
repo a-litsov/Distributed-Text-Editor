@@ -30,4 +30,7 @@ public interface IServerModel {
     public void refresh();
     public void addPresenter(IServerPresenter p);
     public void updateRanges(int value, String filename, int end, UUID id);
+    
+    public boolean registerUser(String login, String pass, StringBuilder filename);
+    public boolean loginUser(String login, String pass, StringBuilder filename);
 }

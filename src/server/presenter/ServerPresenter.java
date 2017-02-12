@@ -109,15 +109,31 @@ class ServerPresenter extends Thread implements IServerPresenter {
                 }
                 
                 
-                if(s.equals("Name sending")) {
+                if(s.equals("User login")) {
                     username = v.getName();
-                    boolean res = m.addName(username);
+                    String pass = v.getName();
+                    StringBuilder filename = new StringBuilder();
+                    boolean res = m.loginUser(username, pass, filename);
                     if(res) {
                         v.sendMes("Ok!Previous filename sending.");
-                        String prev_filename = m.GetFromDB(username);
-                        v.sendMes(prev_filename);
+                        v.sendMes(filename.toString());
                     } else {
                         v.sendMes("Error! Failed filename sending!");
+                    }
+                }
+                
+                if (s.equals("User registration")) {
+                    username = v.getName();
+                    String pass = v.getName();
+                    StringBuilder filename = new StringBuilder();
+                    boolean res = m.registerUser(username, pass, filename);
+                    if (res) {
+                        v.sendMes("Registration successful");
+                        v.sendMes(username);
+                        v.sendMes("Ok!Previous filename sending.");
+                        v.sendMes(filename.toString());
+                    } else {
+                        v.sendMes("Error! Failed registration!");
                     }
                 }
                 

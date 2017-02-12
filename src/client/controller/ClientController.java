@@ -17,9 +17,9 @@ public class ClientController implements IClientController {
     private IClientModel clientModel;
     
     @Override
-    public void sendName(String name) {
+    public void loginUser(String name, String pass) {
         clientModel = BClientModel.build();
-        clientModel.sendName(name);
+        clientModel.loginUser(name, pass);
     }
 
     @Override
@@ -80,5 +80,11 @@ public class ClientController implements IClientController {
     public void incEndLineChanging(int value) {
         clientModel = BClientModel.build();
         clientModel.incEndLineChanging(value);
+    }
+
+    @Override
+    public void registerUser(String login, String pass) {
+        clientModel = BClientModel.build();
+        clientModel.registerUser(login, pass);
     }
 }

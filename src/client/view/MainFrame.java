@@ -41,13 +41,13 @@ import client.model.IClientModel;
 import client.controller.BClientController;
 import client.controller.IClientController;
 import java.awt.event.ActionListener;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JList;
-import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Utilities;
 import server.model.Range;
 /**
@@ -139,7 +139,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         Object[] options = { "Login", "Register" };
         String dialogName = "Login or register before usage, please";
         JPanel panel = new JPanel();
-        for(int i = 0; i < 4; i++)
+        for(int i = 0; i < inputs.length; i++)
             panel.add(inputs[i]);
         int result = JOptionPane.showOptionDialog(null, panel, dialogName,
         JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
@@ -149,12 +149,15 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                     + login.getText() + ", "
                     //                    + lastName.getText() + ", "
                     + password.getPassword());
+            String passHash = MD5(new String(password.getPassword()));
             // Sending to server
             IClientController controller = BClientController.build();
-            controller.sendName(login.getText());
+            controller.loginUser(login.getText(), passHash);
         } else {
             if(result == JOptionPane.NO_OPTION) {
-                // add here method for registration
+                String passHash = MD5(new String(password.getPassword()));
+                IClientController controller = BClientController.build();
+                controller.registerUser(login.getText(), passHash);
             } else {
                 // user closed dialog
                 System.out.println("User canceled / closed the dialog, result = " + result);
@@ -162,6 +165,20 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
             }
         }
     }
+    
+   public String MD5(String md5) {
+   try {
+        java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+        byte[] array = md.digest(md5.getBytes());
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < array.length; ++i) {
+          sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+       }
+        return sb.toString();
+    } catch (java.security.NoSuchAlgorithmException e) {
+    }
+    return null;
+}
     
     private void showFileOpenDialog(String[] data) {
         // Create dialog's components and show it
@@ -529,12 +546,25 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 
     @Override
     public void invalidUsername() {
-        statusLabel.setText("Your login or/and passowrd incorrect :(");
+        statusLabel.setText("Your login or/and password incorrect :(");
         showLoginDialog();
     }
 
     @Override
     public void invalidRange() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void invalidRegistration() {
+        statusLabel.setText("Your registration login or/and password incorrect :(");
+        showLoginDialog();
+    }
+
+    @Override
+    public void updateRegistrationStatus() {
+        IClientModel model = BClientModel.build();
+        String username = model.getUsername();
+        statusLabel.setText("Registration successful! Your login:" + username + "");
     }
 }
