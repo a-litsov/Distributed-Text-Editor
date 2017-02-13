@@ -257,10 +257,9 @@ public class ClientModel implements IClientModel{
                 // Finding start of range
                 for (i = currentEndPosition; lineNumber < lineRanges.get(k).getStart()-1; i = content.indexOf("\n", i + 1), lineNumber++);
                 currentStartPosition = i + 1;
-                String tmpContent = content + "\n";
                 // Finding end of range
-                for (i = currentStartPosition-1; lineNumber < lineRanges.get(k).getEnd(); i = tmpContent.indexOf("\n", i + 1), lineNumber++);
-                currentEndPosition = i;
+                for (i = currentStartPosition-1; lineNumber < lineRanges.get(k).getEnd(); i = content.indexOf("\n", i + 1), lineNumber++);
+                currentEndPosition = i >= content.length() - 1 ? content.length() - 2 : i;
                 tmp = new Range(currentStartPosition, currentEndPosition);
                 symbolRanges.add(tmp);
             }
@@ -281,12 +280,13 @@ public class ClientModel implements IClientModel{
         System.out.println("loadFileContent begins");
         if (lineRanges.size() > 0) {
             int start, end;
-            ArrayList<Range> symbolRanges = getSymbolRanges(fileContent, lineRanges);
+            String tmpFileContent = fileContent + "\n";
+            ArrayList<Range> symbolRanges = getSymbolRanges(tmpFileContent, lineRanges);
             if (symbolRanges != null) {
                 // adding first locked part
                 end = symbolRanges.get(0).getStart();
                 TextFragment tmpFragment = new TextFragment();
-                tmpFragment.text = fileContent.substring(0, end);
+                tmpFragment.text = tmpFileContent.substring(0, end);
                 tmpFragment.isLocked = true;
                 contentFragments.add(tmpFragment);
                 // adding unlocked parts
@@ -294,20 +294,20 @@ public class ClientModel implements IClientModel{
                     start = symbolRanges.get(i).getStart();
                     end = symbolRanges.get(i).getEnd() + 1;
                     tmpFragment = new TextFragment();
-                    tmpFragment.text = fileContent.substring(start, end);
+                    tmpFragment.text = tmpFileContent.substring(start, end);
                     tmpFragment.isLocked = false;
                     contentFragments.add(tmpFragment);
                     if (i + 1 < symbolRanges.size()) {
                         start = end;
-                        end = symbolRanges.get(i).getStart() + 1;
+                        end = symbolRanges.get(i+1).getStart();
                         tmpFragment = new TextFragment();
-                        tmpFragment.text = fileContent.substring(start, end);
+                        tmpFragment.text = tmpFileContent.substring(start, end);
                         tmpFragment.isLocked = true;
                         contentFragments.add(tmpFragment);
                     } else {
                         // check if file end
                         tmpFragment = new TextFragment();
-                        tmpFragment.text = fileContent.substring(end, fileContent.length());
+                        tmpFragment.text = fileContent.substring(end);
                         tmpFragment.isLocked = true;
                         contentFragments.add(tmpFragment);
                     }
@@ -352,12 +352,13 @@ public class ClientModel implements IClientModel{
         System.out.println("loadFileContent begins");
         if (lineRanges.size() > 0) {
             int start, end;
-            ArrayList<Range> symbolRanges = getSymbolRanges(fileContent, lineRanges);
+            String tmpFileContent = fileContent + "\n";
+            ArrayList<Range> symbolRanges = getSymbolRanges(tmpFileContent, lineRanges);
             if (symbolRanges != null) {
                 // adding first unlocked part
                 end = symbolRanges.get(0).getStart();
                 TextFragment tmpFragment = new TextFragment();
-                tmpFragment.text = fileContent.substring(0, end);
+                tmpFragment.text = tmpFileContent.substring(0, end);
                 tmpFragment.isLocked = false;
                 contentFragments.add(tmpFragment);
                 // adding locked parts
@@ -365,20 +366,20 @@ public class ClientModel implements IClientModel{
                     start = symbolRanges.get(i).getStart();
                     end = symbolRanges.get(i).getEnd()+1;
                     tmpFragment = new TextFragment();
-                    tmpFragment.text = fileContent.substring(start, end);
+                    tmpFragment.text = tmpFileContent.substring(start, end);
                     tmpFragment.isLocked = true;
                     contentFragments.add(tmpFragment);
                     if (i + 1 < symbolRanges.size()) {
-                        start = end; // + 1
-                        end = symbolRanges.get(i+1).getStart()+1;
+                        start = end;
+                        end = symbolRanges.get(i+1).getStart();
                         tmpFragment = new TextFragment();
-                        tmpFragment.text = fileContent.substring(start, end);
+                        tmpFragment.text = tmpFileContent.substring(start, end);
                         tmpFragment.isLocked = false;
                         contentFragments.add(tmpFragment);
                     } else {
                         // check if file end
                         tmpFragment = new TextFragment();
-                        tmpFragment.text = fileContent.substring(end, fileContent.length());
+                        tmpFragment.text = fileContent.substring(end);
                         tmpFragment.isLocked = false;
                         contentFragments.add(tmpFragment);
                     }
