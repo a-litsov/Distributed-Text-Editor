@@ -251,18 +251,16 @@ public class ClientModel implements IClientModel{
         if (lineRanges.size() > 0 && content.length() != 0) {
             ArrayList<Range> symbolRanges = new ArrayList<Range>();
             Range tmp;
-            int currentStartPosition = 0, currentEndPosition, i;
+            int currentStartPosition = 0, currentEndPosition = -1, i;
             int lineNumber = 0;
             for (int k = 0; k < lineRanges.size(); k++) {
-                for (i = 0; lineNumber < lineRanges.get(k).getStart(); i = content.indexOf("\n", i + 1), lineNumber++) {
-                    if (lineNumber == 0)
-                        currentStartPosition = 0;
-                    else
-                        currentStartPosition = i + 1;
-                }
+                // Finding start of range
+                for (i = currentEndPosition; lineNumber < lineRanges.get(k).getStart()-1; i = content.indexOf("\n", i + 1), lineNumber++);
+                currentStartPosition = i + 1;
                 String tmpContent = content + "\n";
-                for (i = currentStartPosition; lineNumber <= lineRanges.get(k).getEnd(); i = tmpContent.indexOf("\n", i + 1), lineNumber++);
-                currentEndPosition = i - 1;
+                // Finding end of range
+                for (i = currentStartPosition-1; lineNumber < lineRanges.get(k).getEnd(); i = tmpContent.indexOf("\n", i + 1), lineNumber++);
+                currentEndPosition = i;
                 tmp = new Range(currentStartPosition, currentEndPosition);
                 symbolRanges.add(tmp);
             }
@@ -371,8 +369,8 @@ public class ClientModel implements IClientModel{
                     tmpFragment.isLocked = true;
                     contentFragments.add(tmpFragment);
                     if (i + 1 < symbolRanges.size()) {
-                        start = end;
-                        end = symbolRanges.get(i).getStart()+1;
+                        start = end; // + 1
+                        end = symbolRanges.get(i+1).getStart()+1;
                         tmpFragment = new TextFragment();
                         tmpFragment.text = fileContent.substring(start, end);
                         tmpFragment.isLocked = false;
