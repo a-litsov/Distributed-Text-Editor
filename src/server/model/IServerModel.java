@@ -6,6 +6,7 @@
 package server.model;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.UUID;
 import server.presenter.IServerPresenter;
 
@@ -33,4 +34,6 @@ public interface IServerModel {
     
     public boolean registerUser(String login, String pass, StringBuilder filename);
     public boolean loginUser(String login, String pass, StringBuilder filename);
+    
+    public ArrayList getFileRanges(String filename);
 }

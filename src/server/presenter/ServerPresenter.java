@@ -146,7 +146,8 @@ class ServerPresenter extends Thread implements IServerPresenter {
                 if(s.equals("Get file content")) {
                     filename = v.getString();
                     String content = m.getFileContent(filename);
-                    v.SendFileContent(content);
+                    ArrayList<Range> ranges = m.getFileRanges(filename);
+                    v.SendFileContent(content, ranges);
                 }
                 if(s.equals("Remove name"))
                     m.removeName(username);

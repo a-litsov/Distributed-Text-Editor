@@ -17,6 +17,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.UUID;
 import javax.swing.JTable;
@@ -241,6 +243,32 @@ public class ServerModel implements IServerModel {
             } catch (Exception ex) {
             }
         }
+        return result;
+    }
+    
+    @Override
+    public ArrayList getFileRanges(String filename) {
+        ArrayList<Range> result = new ArrayList<Range>();
+        ArrayList<FileElement> fileUsers = allFiles.get(filename);
+        if (fileUsers == null)
+            return result;
+        for(int i = 0; i < fileUsers.size(); i++) {
+            FileElement tmpFileElement = (FileElement)fileUsers.get(i);
+            result.add(tmpFileElement.range);
+        }
+        // Sorting ranges by start
+        Collections.sort(result, new Comparator<Range>() {
+            @Override
+            public int compare(Range left, Range right) {
+                if (left.getStart() > right.getStart()) {
+                    return 1;
+                }
+                if (left.getStart() < right.getStart()) {
+                    return -1;
+                }
+                return 0;
+            }
+        });
         return result;
     }
     

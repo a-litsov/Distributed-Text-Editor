@@ -9,8 +9,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import server.model.Range;
 
 /**
  *
@@ -65,6 +67,22 @@ public class ServerView implements IServerView {
         }  
     }
 
+    @Override
+    public void SendFileContent(String content, ArrayList<Range> ranges) {
+        try {
+            dos.writeUTF("File content with ranges sending.");
+            dos.writeUTF(content);
+            // Sending ranges
+            dos.writeInt(ranges.size());
+            for(int i = 0; i < ranges.size(); i++) {
+                dos.writeInt(ranges.get(i).getStart());
+                dos.writeInt(ranges.get(i).getEnd());
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ServerView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     @Override
     public void SendFileContent(String content) {
         try {

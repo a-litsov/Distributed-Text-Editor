@@ -163,6 +163,12 @@ public class ClientModel implements IClientModel{
                                 updateFileContentObs();  
                             }  
                             
+                            if (s.equals("File content with ranges sending.")) {
+                                loadFileContent();
+                                updateFileContentObs();
+                            }
+                            
+                            
                             if(s.equals("File saved successfully")) {
                                 updateSavingStateObs();
                             }
@@ -322,13 +328,29 @@ public class ClientModel implements IClientModel{
     }
     
     // loads document with styles
-    public void loadFileContent() throws BadLocationException {
+    public void loadFileContent() {
         contentFragments.clear();
-        int start_ = Integer.parseInt(start);
-        int end_ = Integer.parseInt(end);
-        Range tmp = new Range(start_, end_);
+//        int start_ = Integer.parseInt(start);
+//        int end_ = Integer.parseInt(end);
+//        Range tmp = new Range(start_, end_);
+//        ArrayList<Range> lineRanges = new ArrayList<Range>();
+//        lineRanges.add(tmp);
         ArrayList<Range> lineRanges = new ArrayList<Range>();
-        lineRanges.add(tmp);
+    
+        try {
+            fileContent = dis.readUTF();
+            int size = dis.readInt();
+            for(int i = 0; i < size; i++) {
+                int start = dis.readInt();
+                int end = dis.readInt();
+                Range tmpRange = new Range(start, end);
+                lineRanges.add(tmpRange);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
         System.out.println("loadFileContent begins");
         if (lineRanges.size() > 0) {
             int start, end;

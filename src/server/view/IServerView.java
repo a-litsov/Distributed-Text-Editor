@@ -5,6 +5,9 @@
  */
 package server.view;
 
+import java.util.ArrayList;
+import server.model.Range;
+
 /**
  *
  * @author al1as
@@ -17,4 +20,5 @@ public interface IServerView {
     public void sendMes(String mes);
     public void sendPrevFilename(String prevFilename);
     public void SendFileContent(String content);
+    public void SendFileContent(String content, ArrayList<Range> ranges);
 }
