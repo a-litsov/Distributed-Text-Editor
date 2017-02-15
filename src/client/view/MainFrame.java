@@ -67,8 +67,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     /**
      * Creates new form MainFrame
      */
-    public MainFrame() {
-        
+    public MainFrame() {        
         initComponents();
         this.setSize(600, 400); // Setting frame size
         
@@ -76,18 +75,18 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         createMenu();
         createBottomLabels();
         
+        // Adds current frame to model observers list
         IClientModel clientModel = BClientModel.build();
         clientModel.addObserver(this);
         
+        // Connects current client to server
         IClientController clientController = BClientController.build();
         clientController.connect();
         
         this.addWindowListener(new WindowAdapter() {
-            //
             // Invoked when a window has been opened.
-            //
             public void windowOpened(WindowEvent e) {
-                System.out.println("Window Opened Event");
+                System.out.println("Window opened event, showing user login dialog");
                 showLoginDialog();
             }
         });
@@ -99,7 +98,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         mainTextPane = new JTextPane();
         // adding locked document
         mainTextPane.setDocument(mainDocument);
-        mainTextPane.setText("Hello there, I'm Ernie!");
+        mainTextPane.setText("Empty document");
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(mainTextPane, BorderLayout.CENTER);
@@ -126,14 +125,28 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         this.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
     }
     
+    private String MD5(String md5) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] array = md.digest(md5.getBytes());
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < array.length; ++i)
+                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+            return sb.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            System.out.println("Problem with md5 alghorithm occured. Null string returned.");
+        }
+        return null;
+    }
+        
     private void showLoginDialog() {
-        // Create dialog and show
+        // Creates dialog's components and shows them
         JTextField login = new JTextField(10);
         JPasswordField password = new JPasswordField(10);
         final JComponent[] inputs = new JComponent[]{
-            new JLabel("Login"),
+            new JLabel("Login:"),
             login,
-            new JLabel("Password"),
+            new JLabel("Password:"),
             password
         };
         Object[] options = { "Login", "Register" };
@@ -141,62 +154,49 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         JPanel panel = new JPanel();
         for(int i = 0; i < inputs.length; i++)
             panel.add(inputs[i]);
-        int result = JOptionPane.showOptionDialog(null, panel, dialogName,
-        JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
-        null, options, options[0]);
-        if (result == JOptionPane.YES_OPTION){
-            System.out.println("You entered "
-                    + login.getText() + ", "
-                    //                    + lastName.getText() + ", "
-                    + password.getPassword());
-            String passHash = MD5(new String(password.getPassword()));
-            // Sending to server
-            IClientController controller = BClientController.build();
-            controller.loginUser(login.getText(), passHash);
-        } else {
-            if(result == JOptionPane.NO_OPTION) {
-                String passHash = MD5(new String(password.getPassword()));
-                IClientController controller = BClientController.build();
+        // Shows dialog, variable result stores selected option
+        int result = JOptionPane.showOptionDialog(null, panel, dialogName, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
+            null, options, options[0]);
+        String passHash;
+        IClientController controller;
+        switch(result) {
+            case JOptionPane.YES_OPTION:
+                passHash = MD5(new String(password.getPassword()));
+                System.out.println("Authorization. User entered login:" + login.getText() + ", password hash:" + passHash);
+                // Sending to server
+                controller = BClientController.build();
+                controller.loginUser(login.getText(), passHash);
+                break;
+            case JOptionPane.NO_OPTION:
+                passHash = MD5(new String(password.getPassword()));
+                System.out.println("Registration. User entered login:" + login.getText() + ", password hash:" + passHash);
+                // Sending to server
+                controller = BClientController.build();
                 controller.registerUser(login.getText(), passHash);
-            } else {
-                // user closed dialog
-                System.out.println("User canceled / closed the dialog, result = " + result);
+                break;
+            default:
+                System.out.println("User closed login window, program stopped");
                 System.exit(1);
-            }
+                break;
         }
     }
     
-   public String MD5(String md5) {
-   try {
-        java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
-        byte[] array = md.digest(md5.getBytes());
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < array.length; ++i) {
-          sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
-       }
-        return sb.toString();
-    } catch (java.security.NoSuchAlgorithmException e) {
-    }
-    return null;
-}
-    
     private void showFileOpenDialog(String[] data) {
-        // Create dialog's components and show it
+        // Creates dialog's components and shows them; data - set of filenames sent from server
         JList fileList = new JList(data);
         JScrollPane scrollPane = new JScrollPane(fileList);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        final JComponent[] inputs = new JComponent[]{
-            scrollPane
-        };
-        int result = JOptionPane.showConfirmDialog(null, inputs, "My custom dialog", JOptionPane.PLAIN_MESSAGE);
+        String dialogName = "Select one file, please";
+        // Shows dialog, variable result stores selected option
+        int result = JOptionPane.showConfirmDialog(null, scrollPane, dialogName, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
-            System.out.println("You entered "
-                    + fileList.getSelectedValue());
+            String fileChosen = fileList.getSelectedValue().toString();
+            System.out.println("User selected file: "+ fileChosen);
             // Sending to server
             IClientController clientController = BClientController.build();
-            clientController.sendFileContentRequest(fileList.getSelectedValue().toString());
+            clientController.sendFileContentRequest(fileChosen);
         } else {
-            System.out.println("User canceled / closed the dialog, result = " + result);
+            System.out.println("User canceled / closed the dialog, result: " + result);
         }
     }
     
