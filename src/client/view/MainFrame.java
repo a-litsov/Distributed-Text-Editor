@@ -10,7 +10,6 @@ package client.view;
  * @author al1as
  */
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -32,17 +31,13 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 import client.model.BClientModel;
 import client.model.IClientModel;
 import client.controller.BClientController;
 import client.controller.IClientController;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
-import java.nio.charset.Charset;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,6 +45,7 @@ import javax.swing.JList;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Utilities;
 import server.model.Range;
+
 /**
  *
  * @author al1as
@@ -67,22 +63,22 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     /**
      * Creates new form MainFrame
      */
-    public MainFrame() {        
+    public MainFrame() {
         initComponents();
         this.setSize(600, 400); // Setting frame size
-        
-        createNumberedTextPane();          
+
+        createNumberedTextPane();
         createMenu();
         createBottomLabels();
-        
+
         // Adds current frame to model observers list
         IClientModel clientModel = BClientModel.build();
         clientModel.addObserver(this);
-        
+
         // Connects current client to server
         IClientController clientController = BClientController.build();
         clientController.connect();
-        
+
         this.addWindowListener(new WindowAdapter() {
             // Invoked when a window has been opened.
             public void windowOpened(WindowEvent e) {
@@ -90,10 +86,9 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                 showLoginDialog();
             }
         });
-        
-        
+
     }
-    
+
     private void createNumberedTextPane() {
         mainTextPane = new JTextPane();
         // adding locked document
@@ -107,38 +102,39 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         paneScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         TextLineNumber tln = new TextLineNumber(mainTextPane);
         paneScrollPane.setRowHeaderView(tln);
-        this.getContentPane().add(paneScrollPane, BorderLayout.CENTER);               
+        this.getContentPane().add(paneScrollPane, BorderLayout.CENTER);
     }
-    
+
     private void createBottomLabels() {
         idLabel = new JLabel("Identifier");
         statusLabel = new JLabel("Status");
         previousFilenameLabel = new JLabel("Previous filename");
         statusLabel.setHorizontalAlignment(JLabel.CENTER);
         statusLabel.setVerticalAlignment(JLabel.CENTER);
-        
+
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(idLabel, BorderLayout.WEST);
         bottomPanel.add(statusLabel, BorderLayout.CENTER);
         bottomPanel.add(previousFilenameLabel, BorderLayout.EAST);
-        
+
         this.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
     }
-    
+
     private String MD5(String md5) {
         try {
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
             byte[] array = md.digest(md5.getBytes());
             StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < array.length; ++i)
-                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+            for (int i = 0; i < array.length; ++i) {
+                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1, 3));
+            }
             return sb.toString();
         } catch (java.security.NoSuchAlgorithmException e) {
             System.out.println("Problem with md5 alghorithm occured. Null string returned.");
         }
         return null;
     }
-        
+
     private void showLoginDialog() {
         // Creates dialog's components and shows them
         JTextField login = new JTextField(10);
@@ -149,17 +145,18 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
             new JLabel("Password:"),
             password
         };
-        Object[] options = { "Login", "Register" };
+        Object[] options = {"Login", "Register"};
         String dialogName = "Login or register before usage, please";
         JPanel panel = new JPanel();
-        for(int i = 0; i < inputs.length; i++)
+        for (int i = 0; i < inputs.length; i++) {
             panel.add(inputs[i]);
+        }
         // Shows dialog, variable result stores selected option
         int result = JOptionPane.showOptionDialog(null, panel, dialogName, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
-            null, options, options[0]);
+                null, options, options[0]);
         String passHash;
         IClientController controller;
-        switch(result) {
+        switch (result) {
             case JOptionPane.YES_OPTION:
                 passHash = MD5(new String(password.getPassword()));
                 System.out.println("Authorization. User entered login:" + login.getText() + ", password hash:" + passHash);
@@ -180,7 +177,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                 break;
         }
     }
-    
+
     private void showFileOpenDialog(String[] data) {
         // Creates dialog's components and shows them; data - set of filenames sent from server
         JList fileList = new JList(data);
@@ -191,7 +188,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         int result = JOptionPane.showConfirmDialog(null, scrollPane, dialogName, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
             String fileChosen = fileList.getSelectedValue().toString();
-            System.out.println("User selected file: "+ fileChosen);
+            System.out.println("User selected file: " + fileChosen);
             // Sending to server
             IClientController clientController = BClientController.build();
             clientController.sendFileContentRequest(fileChosen);
@@ -199,123 +196,79 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
             System.out.println("User canceled / closed the dialog, result: " + result);
         }
     }
-    
-    private void appendLockedString(String str, JTextPane textPane) {
-        StyledDocument doc = textPane.getStyledDocument();
 
-//  Define a keyword attribute
-        SimpleAttributeSet keyWord = new SimpleAttributeSet();
-        StyleConstants.setForeground(keyWord, Color.GRAY);
-
-//        StyleConstants.setBackground(keyWord, Color.GRAY);
-//        StyleConstants.setBold(keyWord, true);
-
-//  Add some text
-        try {
-            doc.insertString(doc.getLength(), str, keyWord);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        System.out.println("Appended locked string to mainTextPane\n");
-    }
- 
-    private void appendUnlockedString(String str, JTextPane textPane) {
-        StyledDocument doc = textPane.getStyledDocument();
-
-//  Define a keyword attribute
-        SimpleAttributeSet keyWord = new SimpleAttributeSet();
-        StyleConstants.setForeground(keyWord, Color.BLACK);
-//        StyleConstants.setBackground(keyWord, Color.YELLOW);
-//        StyleConstants.setBold(keyWord, true);
-
-//  Add some text
-        try {
-            doc.insertString(doc.getLength(), str, keyWord);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        System.out.println("Appended unlocked string to mainTextPane\n");
-    }
-    
     private int caretPositionToLineNumber(int caretPosition, JTextPane textPane) {
         int lineNumber = (caretPosition == 0) ? 1 : 0;
         try {
-        for (int offset = caretPosition; offset > 0;) {
-            offset = Utilities.getRowStart(textPane, offset) - 1;
-            lineNumber++;
-        }   } catch (BadLocationException ex) {
-                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            for (int offset = caretPosition; offset > 0;) {
+                offset = Utilities.getRowStart(textPane, offset) - 1;
+                lineNumber++;
             }
+        } catch (BadLocationException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
         System.out.println("Current line number: " + lineNumber);
         return lineNumber;
     }
-    
+
     private void createMenu() {
         JMenuBar menuBar;
-        JMenu menu, submenu;
-        JMenuItem menuItem;
-        JRadioButtonMenuItem rbMenuItem;
-        JCheckBoxMenuItem cbMenuItem;
+        JMenu menu;
 
-//Create the menu bar.
+        // Creates the menu bar
         menuBar = new JMenuBar();
 
-//Build the first menu.
+        // Builds the File menu
         menu = new JMenu("File");
         menuBar.add(menu);
 
-//a group of JMenuItems
-        openMenuItem = new JMenuItem("Open",
-                KeyEvent.VK_O);
-        menu.add(openMenuItem);
-        
+        // Cross-platform way of handling shortcuts for swing
+        int shortcut = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+        // A group of JMenuItems for File menu
+        // Creates menu item for opening file
+        openMenuItem = new JMenuItem("Open");
+        // Adds cmd+O(ctrl+O for win users) shortcut for Open menu item
+        openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcut));
+        // Adds action for Open menu item - sends file list request to server
         openMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 IClientController clientController = BClientController.build();
                 clientController.sendFileListRequest();
             }
         });
+        menu.add(openMenuItem);
 
-        saveMenuItem = new JMenuItem("Save",
-                KeyEvent.VK_O);
-        menu.add(saveMenuItem);
-
+        // Same actions for Save menu item
+        saveMenuItem = new JMenuItem("Save");
+        saveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcut));
         saveMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                IClientController clientController = BClientController.build();
-                String content = "";
                 try {
+                    IClientController clientController = BClientController.build();
                     int startSymbol = clientController.getStartSymbolRange();
                     int endSymbol = clientController.getEndSymbolRange();
+
+                    String content = "";
                     content = mainTextPane.getDocument().getText(startSymbol, endSymbol - startSymbol + 1);
+
+                    clientController.sendSaveRequest(content);
+                    System.out.println("Modified content sent, here it is:\n" + content);
                 } catch (BadLocationException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Modified content parsing/sending error.");
                 }
-                System.out.println("Text to save sended, here it is:" + content);
-                clientController.sendSaveRequest(content);
             }
         });
+        menu.add(saveMenuItem);
         
-        JMenuItem closeMenuItem = new JMenuItem("Close",
-            KeyEvent.VK_O);
-        menu.add(closeMenuItem);
-        
-        closeMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                IClientController clientController = BClientController.build();
-                clientController.sendUnlocking();
-                System.exit(0);
-            }
-        });
-        
-//Build second menu in the menu bar.
+        //Build the Lock menu in menubar
         menu = new JMenu("Lock");
         menuBar.add(menu);
         
-        lockMenuItem = new JMenuItem("Lock selected lines",
-                KeyEvent.VK_O);
-        menu.add(lockMenuItem);
-        
+        // Lock menu item
+        lockMenuItem = new JMenuItem("Lock selected lines");
+        lockMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, shortcut));
         lockMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //  Here's going selection ranges analyzing part
@@ -323,123 +276,31 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                 try {
                     startSymbolNumber = Utilities.getRowStart(mainTextPane, mainTextPane.getSelectionStart());
                     endSymbolNumber = Utilities.getRowEnd(mainTextPane, mainTextPane.getSelectionEnd());
-                    // By default JTextPane adds newline charater at the end of each paragraph
-                    if (endSymbolNumber == symbolsCount)
+                    // By default JTextPane adds extra newline charater at the end of each paragraph
+                    if (endSymbolNumber == symbolsCount) {
                         endSymbolNumber--;
-                    startLineNumber = caretPositionToLineNumber(mainTextPane.getSelectionStart(), mainTextPane);
-                    endLineNumber = caretPositionToLineNumber(mainTextPane.getSelectionEnd(), mainTextPane);
+                    }
                 } catch (BadLocationException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
-               
-                IClientController clientController = BClientController.build();
-                clientController.sendRangesAndLock(Integer.toString(startLineNumber), Integer.toString(endLineNumber), startSymbolNumber,
-                        endSymbolNumber);
 
-//                int start = mainTextPane.getSelectionStart();
-//                int end = mainTextPane.getSelectionEnd();
-//                System.out.println("Selection start: " + start + ", end: " + end);
-                
-//                IClientController clientController = BClientController.build();
-//                clientController.sendFileListRequest();
+                IClientController clientController = BClientController.build();
+                clientController.sendRangesAndLock(startSymbolNumber, endSymbolNumber);
             }
         });
-        
-        unlockMenuItem = new JMenuItem("Unlock",
-                KeyEvent.VK_O);
-        menu.add(unlockMenuItem);
+        menu.add(lockMenuItem);
 
+        // Unlock menu item
+        unlockMenuItem = new JMenuItem("Unlock");   
+        unlockMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, shortcut));
         unlockMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 IClientController clientController = BClientController.build();
                 clientController.sendUnlocking();
-                System.out.println("Send unlocking message");
-
+                System.out.println("Unlocking message was sent");
             }
         });
-        
-        this.setJMenuBar(menuBar);
-    }
-    
-    private void createMenuSample() {
-        JMenuBar menuBar;
-        JMenu menu, submenu;
-        JMenuItem menuItem;
-        JRadioButtonMenuItem rbMenuItem;
-        JCheckBoxMenuItem cbMenuItem;
-
-//Create the menu bar.
-        menuBar = new JMenuBar();
-
-//Build the first menu.
-        menu = new JMenu("A Menu");
-        menu.setMnemonic(KeyEvent.VK_A);
-        menu.getAccessibleContext().setAccessibleDescription(
-                "The only menu in this program that has menu items");
-        menuBar.add(menu);
-
-//a group of JMenuItems
-        menuItem = new JMenuItem("A text-only menu item",
-                KeyEvent.VK_T);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
-        menuItem.getAccessibleContext().setAccessibleDescription(
-                "This doesn't really do anything");
-        menu.add(menuItem);
-
-        menuItem = new JMenuItem("Both text and icon",
-                new ImageIcon("images/middle.gif"));
-        menuItem.setMnemonic(KeyEvent.VK_B);
-        menu.add(menuItem);
-
-        menuItem = new JMenuItem(new ImageIcon("images/middle.gif"));
-        menuItem.setMnemonic(KeyEvent.VK_D);
-        menu.add(menuItem);
-
-//a group of radio button menu items
-        menu.addSeparator();
-        ButtonGroup group = new ButtonGroup();
-        rbMenuItem = new JRadioButtonMenuItem("A radio button menu item");
-        rbMenuItem.setSelected(true);
-        rbMenuItem.setMnemonic(KeyEvent.VK_R);
-        group.add(rbMenuItem);
-        menu.add(rbMenuItem);
-
-        rbMenuItem = new JRadioButtonMenuItem("Another one");
-        rbMenuItem.setMnemonic(KeyEvent.VK_O);
-        group.add(rbMenuItem);
-        menu.add(rbMenuItem);
-
-//a group of check box menu items
-        menu.addSeparator();
-        cbMenuItem = new JCheckBoxMenuItem("A check box menu item");
-        cbMenuItem.setMnemonic(KeyEvent.VK_C);
-        menu.add(cbMenuItem);
-
-        cbMenuItem = new JCheckBoxMenuItem("Another one");
-        cbMenuItem.setMnemonic(KeyEvent.VK_H);
-        menu.add(cbMenuItem);
-
-//a submenu
-        menu.addSeparator();
-        submenu = new JMenu("A submenu");
-        submenu.setMnemonic(KeyEvent.VK_S);
-
-        menuItem = new JMenuItem("An item in the submenu");
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_2, ActionEvent.ALT_MASK));
-        submenu.add(menuItem);
-
-        menuItem = new JMenuItem("Another item");
-        submenu.add(menuItem);
-        menu.add(submenu);
-
-//Build second menu in the menu bar.
-        menu = new JMenu("Another Menu");
-        menu.setMnemonic(KeyEvent.VK_N);
-        menu.getAccessibleContext().setAccessibleDescription(
-                "This menu does nothing");
-        menuBar.add(menu);
+        menu.add(unlockMenuItem);
         
         this.setJMenuBar(menuBar);
     }
@@ -463,8 +324,9 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
      */
     public static void main(String args[]) {
         // if user prefers macOS, our jmenu will look native
-        if (System.getProperty("os.name").contains("Mac"))
+        if (System.getProperty("os.name").contains("Mac")) {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
+        }
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -476,7 +338,6 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 
     // Variables declaration - do not modify                     
     // End of variables declaration                   
-
     @Override
     public void updateId() {
         IClientModel model = BClientModel.build();
@@ -499,7 +360,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         String[] filenames = fileString.split("\\r?\\n");
         showFileOpenDialog(filenames);
     }
-    
+
     @Override
     public void updateFileContent() {
         IClientModel clientModel = BClientModel.build();
@@ -530,7 +391,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 //        appendLockedString(clientModel.getLockedPart1(), mainTextPane);
 //        appendUnlockedString(clientModel.getUnlockedPart(), mainTextPane);
 //        appendLockedString(clientModel.getLockedPart2(), mainTextPane);
-        
+
         String finalString = lockedPart1 + unlockedPart + lockedPart2;
         Range tmp = new Range(startSymbolNumber, endSymbolNumber);
         ArrayList<Range> ranges = new ArrayList<Range>();

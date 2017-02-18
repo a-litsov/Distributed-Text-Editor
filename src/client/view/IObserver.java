@@ -7,7 +7,7 @@ package client.view;
 
 /**
  *
- * @author evgen
+ * @author al1as
  */
 public interface IObserver {
     void updateId();

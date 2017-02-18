@@ -22,7 +22,7 @@ public interface IClientModel {
     void updateRegistrationStatusObs(); 
     void sendFileListRequest();
     void sendFileContentRequest(String filename);
-    void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol);
+    void sendRangesAndLock(int startSymbol, int endSymbol);
     void sendUnlocking();
     void sendSaveRequest(String content);
     void incEndLock(int value);

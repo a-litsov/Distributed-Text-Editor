@@ -23,8 +23,9 @@ import javax.swing.text.BadLocationException;
 import server.model.Range;
 /**
  *
- * @author evgen
+ * @author al1as
  */
+
 public class ClientModel implements IClientModel{   
     int port = 3125;
     InetAddress ip = null;
@@ -446,11 +447,21 @@ public class ClientModel implements IClientModel{
         return true;
     }
     
+    private int caretPositionToLineNumber(int caretPosition, int startPosition) {
+        int i;
+        int lineNumber = (caretPosition == 0) ? 1 : 0;
+        String fileContent = this.fileContent + '\n';
+        for(i = startPosition; i < Integer.min(caretPosition, fileContent.length()); i = fileContent.indexOf('\n', i+1))
+            lineNumber++;
+        System.out.println("Current line number: " + lineNumber);
+        return lineNumber;
+    }
+    
     @Override
-    public void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol) {
+    public void sendRangesAndLock(int startSymbol, int endSymbol) {
         try {
-            this.start = startLine;
-            this.end = endLine;
+            this.start = Integer.toString(caretPositionToLineNumber(startSymbol, 0));
+            this.end = Integer.toString(caretPositionToLineNumber(endSymbol, 0));
             if (!testRange()) {
                 invalidRange();
                 return;

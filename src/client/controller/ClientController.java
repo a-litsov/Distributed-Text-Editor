@@ -35,9 +35,9 @@ public class ClientController implements IClientController {
     }
 
     @Override
-    public void sendRangesAndLock(String startLine, String endLine, int startSymbol, int endSymbol) {
+    public void sendRangesAndLock(int startSymbol, int endSymbol) {
         clientModel = BClientModel.build();
-        clientModel.sendRangesAndLock(startLine, endLine, startSymbol, endSymbol);
+        clientModel.sendRangesAndLock(startSymbol, endSymbol);
     }
 
     @Override

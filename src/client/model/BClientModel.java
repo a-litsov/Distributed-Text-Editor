@@ -7,7 +7,7 @@ package client.model;
 
 /**
  *
- * @author evgen
+ * @author al1as
  */
 public class BClientModel {
     static ClientModel clientModel = new ClientModel();
