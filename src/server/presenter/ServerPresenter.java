@@ -65,8 +65,8 @@ class ServerPresenter extends Thread implements IServerPresenter {
         if(isOk) 
             v.sendMes("Ranges was set successfully");
         else {
+            sendFileContent(filename);
             v.sendMes("Error with setting ranges");   
-            sendFileContent();
         }
     }
     
@@ -106,6 +106,7 @@ class ServerPresenter extends Thread implements IServerPresenter {
                 if(s.equals("Unlocking")) {
                     Unlock();
                     sendFileContent(filename);
+                    v.sendMes("Successfully unlocked!");
                 }
 //                
 //                
@@ -116,9 +117,9 @@ class ServerPresenter extends Thread implements IServerPresenter {
                     if(endLineChanging > 0)
                         m.updateRanges(endLineChanging, filename, Integer.parseInt(end), id);
                     m.Save(LockedContent, filename, id);
+                    Unlock();
                     sendFileContent(filename);
                     v.sendMes("File saved successfully");
-                    Unlock();
                 }
                 
                 

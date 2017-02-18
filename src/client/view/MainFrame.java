@@ -53,7 +53,7 @@ import server.model.Range;
 public class MainFrame extends javax.swing.JFrame implements IObserver {
     JTextPane mainTextPane;
     JLabel idLabel, statusLabel, previousFilenameLabel;
-    JMenuItem openMenuItem, saveMenuItem, lockMenuItem, unlockMenuItem;
+    JMenuItem openMenuItem, saveMenuItem, lockMenuItem, unlockMenuItem, refreshMenuItem;
     StyledDocumentWithLocks mainDocument = new StyledDocumentWithLocks();
     boolean isLocked = false; // Current state of document
     int startLineNumber, endLineNumber;
@@ -248,6 +248,17 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         });
         menu.add(saveMenuItem);
         
+        // Same actions for Refresh menu item
+        refreshMenuItem = new JMenuItem("Refresh");
+        refreshMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, shortcut));
+        refreshMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                IClientController clientController = BClientController.build();
+                clientController.refreshFileContent();
+            }
+        });
+        menu.add(refreshMenuItem);
+        
         //Build the Lock menu in menubar
         menu = new JMenu("Lock");
         menuBar.add(menu);
@@ -350,21 +361,24 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
 
     @Override
     public void updateFileContent() {
-        IClientModel clientModel = BClientModel.build();
-        String content = clientModel.getFileContent();
-        ArrayList<TextFragment> fragments = clientModel.getTextFragments();
         try {
+            IClientModel clientModel = BClientModel.build();
+            String content = clientModel.getFileContent();
+            ArrayList<TextFragment> fragments = clientModel.getTextFragments();
             mainDocument.loadFileContent(fragments);
+            mainTextPane.setEditable(false);
+            symbolsCount = content.length();
+            statusLabel.setText("File content successfully loaded!");
+            System.out.println("File content successfully loaded!");
         } catch (BadLocationException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Error while file content loading.");
         }
-        mainTextPane.setEditable(false);
-        symbolsCount = content.length();
     }
 
     @Override
     public void updateSavingState() {
-        statusLabel.setText("Successufly saved current file!");
+        statusLabel.setText("Current file sucessfully saved!");
         System.out.println("File saved on server");
     }
 
@@ -378,9 +392,10 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
             ranges.add(tmp);
             mainTextPane.setEditable(true);
             mainDocument.loadFileContent(clientModel.getTextFragments());
-            System.out.println("Ranges state successfully updated.");
+            statusLabel.setText("Your lock successfully applied!");
+            System.out.println("Your lock successfully applied!");
         } catch (BadLocationException ex) {
-            System.out.println("Error while ranges state updating.");
+            System.out.println("Error while lock applying.");
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -410,6 +425,11 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         System.out.println("Registration successful.");
         IClientModel model = BClientModel.build();
         String username = model.getUsername();
-        statusLabel.setText("Registration successful! Your login:" + username + "");
+        statusLabel.setText("Registration successful! Your login:" + username);
+    }
+
+    @Override
+    public void updateUnlockingState() {
+        statusLabel.setText("Successfully unlocked!");
     }
 }

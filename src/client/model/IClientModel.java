@@ -25,6 +25,7 @@ public interface IClientModel {
     void sendRangesAndLock(int startSymbol, int endSymbol);
     void sendUnlocking();
     void sendSaveRequest(String content);
+    void refreshFileContent();
     void incEndLock(int value);
     void incEndLineChanging(int value);
     

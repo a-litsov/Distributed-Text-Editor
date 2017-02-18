@@ -16,8 +16,10 @@ public interface IObserver {
     void updateFileContent();
     void updateSavingState();
     void updateRangesState();
+    void updateUnlockingState();
+    void updateRegistrationStatus();
+
     void invalidUsername();
     void invalidRegistration();
-    void updateRegistrationStatus();
     void invalidRange();
 }

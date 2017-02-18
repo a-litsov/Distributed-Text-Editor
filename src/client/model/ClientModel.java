@@ -167,6 +167,10 @@ public class ClientModel implements IClientModel{
                             if(s.equals("Error with setting ranges")) {
                                 invalidRange();
                             }
+                            
+                            if(s.equals("Successfully unlocked!")) {
+                                updateUnlockingStateObs();
+                            }
                         
                         } catch (IOException ex) {
                             Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
@@ -398,6 +402,7 @@ public class ClientModel implements IClientModel{
         try {
             dos.writeUTF("Get file content");
             dos.writeUTF(filename);
+            this.filename = filename;
         } catch (IOException ex) {
             Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -579,7 +584,13 @@ public class ClientModel implements IClientModel{
         for (IObserver o: observers) { 
             o.updateRangesState();
         }
-    }            
+    }  
+    
+    void updateUnlockingStateObs() {
+        for (IObserver o : observers) {
+            o.updateUnlockingState();
+        }
+    }
     @Override
     public void addObserver(IObserver o)
     {
@@ -627,5 +638,10 @@ public class ClientModel implements IClientModel{
     @Override
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public void refreshFileContent() {
+        sendFileContentRequest(filename);
     }
 }

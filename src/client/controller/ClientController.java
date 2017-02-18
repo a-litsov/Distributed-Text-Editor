@@ -87,4 +87,10 @@ public class ClientController implements IClientController {
         clientModel = BClientModel.build();
         clientModel.registerUser(login, pass);
     }
+
+    @Override
+    public void refreshFileContent() {
+        clientModel = BClientModel.build();
+        clientModel.refreshFileContent();
+    }
 }

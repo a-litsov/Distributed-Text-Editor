@@ -24,4 +24,5 @@ public interface IClientController {
     int getEndSymbolRange();
     void incEndLineChanging(int value);
     void connect();
+    void refreshFileContent();
 }
