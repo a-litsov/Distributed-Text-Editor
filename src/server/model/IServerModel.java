@@ -25,7 +25,7 @@ public interface IServerModel {
     public String listFilesForFolder(final File folder);
     public String getFileContent(String FileName);
     public void removeName(String username);
-    public void Save(String LockedContent, String filename, UUID id);
+    public void Save(String LockedContent, String filename, UUID id, int oldEnd);
     public String getMessage();
     public void sendMessage(String message);
     public void refresh();

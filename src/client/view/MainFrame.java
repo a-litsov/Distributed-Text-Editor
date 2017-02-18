@@ -231,7 +231,7 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
                     int endSymbol = clientController.getEndSymbolRange();
 
                     String content = "";
-                    content = mainTextPane.getDocument().getText(startSymbol, endSymbol - startSymbol + 1);
+                    content = mainDocument.getText(startSymbol, endSymbol - startSymbol + 1);
 
                     clientController.sendSaveRequest(content);
                     System.out.println("Modified content sent, here it is:\n" + content);

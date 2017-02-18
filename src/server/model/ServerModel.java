@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -211,27 +213,19 @@ public class ServerModel implements IServerModel {
 
     @Override
     public String getFileContent(String FileName) {
-        String fullname = "Shared/" + FileName;
-        FileReader fr = null;
-        BufferedReader textReader = null;
-        String result = "";
+        String s = "";
         try {
-            fr = new FileReader(fullname);
-            textReader = new BufferedReader(fr);
-            String str = "";
-            while ((str = textReader.readLine()) != null) {
-                result = result + str + "\n";
+            String fullname = "Shared/" + FileName;
+            FileReader fr = new FileReader(new File(fullname));
+            
+            int c;
+            while ((c = fr.read()) >= 0) {
+                s += (char) c;
             }
-            result = result.substring(0, result.length() - 1);
-        } catch (IOException e) {
-        } finally {
-            try {
-                textReader.close();
-                fr.close();
-            } catch (Exception ex) {
-            }
+        } catch (IOException ex) {
+            Logger.getLogger(ServerModel.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return result;
+        return s;
     }
     
     @Override
@@ -261,29 +255,34 @@ public class ServerModel implements IServerModel {
     }
     
     @Override
-    public void Save(String LockedContent, String filename, UUID id) {
+    public void Save(String lockedContent, String filename, UUID id, int oldEnd) {
         FileElement element = allClient.get(id);
         String fullname = "Shared/" + filename;
-        String FileContent = getFileContent(filename);
-        String[] ArrayContent = FileContent.split("\n");
-        String[] TextData = new String[2];
-        for (int i = 0; i < 2; i++) {
-            TextData[i] = "";
+        String fileContent = getFileContent(filename) + '\n';
+        String outContent = "";
+        int i, lineNumber = 0, k = 0;
+        for(i = fileContent.indexOf('\n', 0); lineNumber < oldEnd-1; i = fileContent.indexOf('\n', i+1)) {
+            if(lineNumber < element.getStart() - 1)
+                outContent += fileContent.substring(k, i+1);
+            k = i+1;
+            lineNumber++;
         }
-        int switcher = 0;
-        for (int i = 0; i < ArrayContent.length; i++) {
-            if (i == element.getStart() - 1) {
-                switcher++;
-                i += element.getEnd() - element.getStart() + 1;
-                // When lock is located at the end of file
-                if (i >= ArrayContent.length)
-                    break;
-            }
-            TextData[switcher] += ArrayContent[i] + "\n";
-        }
-        if (!TextData[1].isEmpty())
-            TextData[1] = TextData[1].substring(0, TextData[1].length() - 1);
-        String outContent = TextData[0] + LockedContent + TextData[1];
+        outContent += lockedContent;
+        if(i+1 < fileContent.length())
+            outContent += fileContent.substring(i+1, fileContent.length() - 1);    
+//        for (int i = 0; i < ArrayContent.length; i++) {
+//            if (i == element.getStart() - 1) {
+//                switcher++;
+//                i += element.getEnd() - element.getStart() + 1;
+//                // When lock is located at the end of file
+//                if (i >= ArrayContent.length)
+//                    break;
+//            }
+//            TextData[switcher] += ArrayContent[i] + "\n";
+//        }
+//        if (!TextData[1].isEmpty())
+//            TextData[1] = TextData[1].substring(0, TextData[1].length() - 1);
+//        String outContent = TextData[0] + LockedContent + TextData[1];
         try {
             PrintWriter printer = new PrintWriter(fullname);
             printer.print(outContent);
@@ -317,11 +316,15 @@ public class ServerModel implements IServerModel {
 
     @Override
     public void updateRanges(int value, String filename, int end, UUID id) {
+        // change this
+        
         // change others
         ArrayList<FileElement> elements = allFiles.get(filename);
         for(int i = 0; i < elements.size(); i++) {
             FileElement curElement = elements.get(i);
-            if(curElement.getStart() >= end) {
+            if(curElement.getUUID().equals(id))
+                curElement.setEnd(curElement.getEnd() + value);
+            else if(curElement.getStart() >= end) {
                 curElement.setStart(curElement.getStart() + value);
                 curElement.setEnd(curElement.getEnd() + value);
             }

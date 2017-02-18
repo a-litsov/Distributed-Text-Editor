@@ -55,7 +55,10 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
     public void replace(final int offset, final int length, final String text, AttributeSet a) throws BadLocationException 
     {
         IClientController controller = BClientController.build();
-        if (offset >= controller.getStartSymbolRange() && offset + length <= controller.getEndSymbolRange()) {
+        int end = controller.getEndSymbolRange();
+        if(end == this.getLength()-1)
+            end++;
+        if (offset >= controller.getStartSymbolRange() && offset + length <= end) {
             controller.incEndLock(text.length()-length);
             String deletedContent = this.getText(offset, length);
             for(int i = 0; i < length; i++)
@@ -66,6 +69,11 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
                     controller.incEndLineChanging(1);
             super.replace(offset, length, text, null);
         }
+    }
+    
+    @Override
+    public void insertString(int offs, String str, AttributeSet a) {
+        System.out.println("insertttt");
     }
     
     // loads document with styles

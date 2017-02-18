@@ -116,7 +116,7 @@ class ServerPresenter extends Thread implements IServerPresenter {
                     int endLineChanging = Integer.parseInt(endLineChanged);
                     if(endLineChanging > 0)
                         m.updateRanges(endLineChanging, filename, end, id);
-                    m.Save(LockedContent, filename, id);
+                    m.Save(LockedContent, filename, id, element.getEnd()-endLineChanging);
                     Unlock();
                     sendFileContent(filename);
                     v.sendMes("File saved successfully");

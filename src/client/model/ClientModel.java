@@ -161,9 +161,8 @@ class ClientModel implements IClientModel{
         try {
             this.startLine = caretPositionToLineNumber(startSymbol, 0);
             this.endLine = caretPositionToLineNumber(endSymbol, 0);
-            Range tmp = new Range(startSymbol, endSymbol);
             symbolLocks.clear();
-            symbolLocks.add(tmp);
+            symbolLocks.add(new Range(startSymbol, endSymbol));
             //Отправляем выбранный диапазон
             dos.writeUTF("Ranges sending");
             dos.writeInt(startLine);
