@@ -14,12 +14,18 @@ import java.util.ArrayList;
  * @author al1as
  */
 public interface IClientModel {
-    public void connect();
+    String getId();
+    String getUsername();
+    String getPrevFilename();
+    String getFileList();
+    String getFileContent();
+    int getStartSymbolRange();
+    int getEndSymbolRange();
+    ArrayList<TextFragment> getTextFragments();
     
-    
+    void connect();
     void loginUser(String name, String pass);
     void registerUser(String login, String pass);
-    void updateRegistrationStatusObs(); 
     void sendFileListRequest();
     void sendFileContentRequest(String filename);
     void sendRangesAndLock(int startSymbol, int endSymbol);
@@ -29,14 +35,5 @@ public interface IClientModel {
     void incEndLock(int value);
     void incEndLineChanging(int value);
     
-    
-    String getId();
-    String getUsername();
-    String getPrevFilename();
-    String getFileList();
-    String getFileContent();
-    int getStartSymbolRange();
-    int getEndSymbolRange();
-    ArrayList<TextFragment> getTextFragments();
     void addObserver(IObserver o);
 }

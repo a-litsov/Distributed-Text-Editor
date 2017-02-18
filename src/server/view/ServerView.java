@@ -34,12 +34,12 @@ public class ServerView implements IServerView {
     }
     
     @Override
-    public String[] getRanges() {
-        String[] ranges = new String[2];
+    public int[] getRanges() {
+        int[] ranges = new int[2];
         try
         {
-            ranges[0] = dis.readUTF(); // start
-            ranges[1] = dis.readUTF(); // end
+            ranges[0] = dis.readInt(); // start
+            ranges[1] = dis.readInt(); // end
             // В презентере сконструировать Range и добавить его в общую хэштаблицу
         } catch (IOException ex) {
                 Logger.getLogger(ServerView.class.getName()).log(Level.SEVERE, null, ex);

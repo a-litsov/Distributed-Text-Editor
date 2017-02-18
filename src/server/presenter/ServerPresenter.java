@@ -35,8 +35,8 @@ class ServerPresenter extends Thread implements IServerPresenter {
     ArrayList file_elements;  
     String username;
     String filename;
-    String start;
-    String end;
+    int start;
+    int end;
     FileElement element;
     boolean f = true;
     
@@ -56,10 +56,10 @@ class ServerPresenter extends Thread implements IServerPresenter {
     }
     
     private void GetRanges() {
-        String[] ranges = v.getRanges();
+        int[] ranges = v.getRanges();
         start = ranges[0];
         end = ranges[1];
-        Range tmp_range = new Range(Integer.parseInt(start), Integer.parseInt(end));
+        Range tmp_range = new Range(start, end);
         element = new FileElement(id, username, tmp_range);
         Boolean isOk = m.putFileElement(filename, element);
         if(isOk) 
@@ -115,7 +115,7 @@ class ServerPresenter extends Thread implements IServerPresenter {
                     String endLineChanged = v.getString();
                     int endLineChanging = Integer.parseInt(endLineChanged);
                     if(endLineChanging > 0)
-                        m.updateRanges(endLineChanging, filename, Integer.parseInt(end), id);
+                        m.updateRanges(endLineChanging, filename, end, id);
                     m.Save(LockedContent, filename, id);
                     Unlock();
                     sendFileContent(filename);

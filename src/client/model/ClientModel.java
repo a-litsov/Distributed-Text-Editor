@@ -26,35 +26,33 @@ import server.model.Range;
  * @author al1as
  */
 
-public class ClientModel implements IClientModel{   
-    int port = 3125;
-    InetAddress ip = null;
-    Socket cs;
-    InputStream is;
-    OutputStream os;
-    DataInputStream dis;
-    DataOutputStream dos;
-    String id;
-    String username;
-    String fileList = "";
-    String fileContent = "";
-    String filename = "";
-    String short_filename = "";
-    String prevFilename = "";
-    String start, end;
-    String lockedPart1, unlockedPart, lockedPart2;
-    ArrayList<TextFragment> contentFragments = new ArrayList<TextFragment>();
-    ArrayList<Range> symbolLocks = new ArrayList<Range>();
-    int endLineChanging = 0;
-    String message;//Строка, содержащая сообщение
-    boolean f = true;
-    boolean flag = false;//Указывает на то, была передача данных, или нет
+class ClientModel implements IClientModel{   
+    private int port = 3125;
+    private InetAddress ip = null;
+    private Socket cs;
+    private InputStream is;
+    private OutputStream os;
+    private DataInputStream dis;
+    private DataOutputStream dos;
+    private String id, username, fileList = "", fileContent = "", filename = "",
+        prevFilename = "";
+    private int startLine, endLine;
+    private ArrayList<TextFragment> contentFragments = new ArrayList<TextFragment>();
+    private ArrayList<Range> symbolLocks = new ArrayList<Range>();
+    private int endLineChanging = 0;
+    private boolean f = true;
     
     ArrayList<IObserver> observers = new ArrayList<>();
     
     public ClientModel() {
         Range tmp = new Range(0, 0);
         symbolLocks.add(tmp);
+    }
+    
+    @Override
+    public void addObserver(IObserver o)
+    {
+        observers.add(o);
     }
     
     @Override
@@ -77,6 +75,135 @@ public class ClientModel implements IClientModel{
         return fileContent;
     }
     
+    @Override
+    public ArrayList<TextFragment> getTextFragments() {
+        return contentFragments;
+    }
+    
+    @Override
+    public int getStartSymbolRange() {
+        return symbolLocks.get(0).getStart();
+    }
+
+    @Override
+    public int getEndSymbolRange() {
+        return symbolLocks.get(0).getEnd();
+    }
+    
+    @Override
+    public String getUsername() {
+        return username;
+    }
+    
+    @Override
+    public void incEndLineChanging(int value) {
+        endLineChanging += value;
+    }
+    
+    @Override
+    public void loginUser(String name, String pass) {
+        try {
+            dos.writeUTF("User login");
+            dos.writeUTF(name);
+            dos.writeUTF(pass);
+            username = name;
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void registerUser(String login, String pass) {
+        try {
+            dos.writeUTF("User registration");
+            dos.writeUTF(login);
+            dos.writeUTF(pass);
+            username = login;
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void sendFileListRequest() {
+        try {
+            dos.writeUTF("Get list of files.");
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void sendFileContentRequest(String filename) {
+        try {
+            dos.writeUTF("Get file content");
+            dos.writeUTF(filename);
+            this.filename = filename;
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void sendSaveRequest(String content) {
+        try {
+            dos.writeUTF("File saving");
+            dos.writeUTF(content);
+            String endLineChange = String.valueOf(endLineChanging);
+            dos.writeUTF(endLineChange);
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    @Override
+    public void sendRangesAndLock(int startSymbol, int endSymbol) {
+        try {
+            this.startLine = caretPositionToLineNumber(startSymbol, 0);
+            this.endLine = caretPositionToLineNumber(endSymbol, 0);
+            Range tmp = new Range(startSymbol, endSymbol);
+            symbolLocks.clear();
+            symbolLocks.add(tmp);
+            //Отправляем выбранный диапазон
+            dos.writeUTF("Ranges sending");
+            dos.writeInt(startLine);
+            dos.writeInt(endLine);
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+
+        }
+    }
+
+    @Override
+    public void incEndLock(int value) {
+        // extendable: if we need any lock, just pass it number by parameter
+        Range current = symbolLocks.get(0);
+        current.setEnd(current.getEnd() + value);
+    }
+
+    @Override
+    public void sendUnlocking() {
+        try {
+            dos.writeUTF("Unlocking");
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void sendStop() {
+        try {
+            dos.writeUTF("end");
+        } catch (IOException ex) {
+            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    @Override
+    public void refreshFileContent() {
+        sendFileContentRequest(filename);
+    }
+    
+    
     public void connect() {
         try {
             ip = InetAddress.getLocalHost();
@@ -92,90 +219,67 @@ public class ClientModel implements IClientModel{
             dis = new DataInputStream(is);
             dos = new DataOutputStream(os);
             
-            //Получаем идентификатор
+            // Starting connection via getting id from server
             id = dis.readUTF();
-            updateIdObs(); // Обновляем view, подписанные на id
+            updateIdObs(); 
             System.out.println("Connected and ID loaded:" + id);
             
-            //Создаем "обработчик" завершения сервера
+            // Creating server message event handler
             new Thread()
             {
-
                 @Override
                 public void run() { 
-                    while(f)
-                    {
+                    while(f) {
                         try {
-                            String s;
-                            try{
-                                s = dis.readUTF();
-                            } catch(EOFException ex1) {
-                                break;
+                            String s = dis.readUTF();          
+                            switch(s) {
+                                case "Server stopped":
+                                    f = false;
+                                    sendStop();
+                                    cs.close();
+                                    System.exit(1);
+                                    break;
+                                case "Ok!Previous filename sending.":
+                                    getPrevFilenameFromServer();
+                                    updatePrevFilenameObs();
+                                    break;
+                                case "Error! Failed filename sending!":
+                                    invalidUsername();
+                                    break;
+                                case "Registration successful":
+                                    username = dis.readUTF();
+                                    updateRegistrationStatusObs();
+                                    break;
+                                case "Error! Failed registration!":
+                                    invalidRegistration();
+                                    break;
+                                case "File list sending":
+                                    getFileListFromServer();
+                                    updateFileListObs();
+                                    break;
+                                case "File content with ranges sending.":
+                                    loadFileContent();
+                                    updateFileContentObs();
+                                    break;
+                                case "File saved successfully":
+                                    updateSavingStateObs();
+                                    break;
+                                case "Ranges was set successfully":
+                                    loadFileWithMyLocks();
+                                    updateRangesStateObs();  
+                                    break;
+                                case "Error with setting ranges":
+                                    invalidRange();
+                                    break;
+                                case "Successfully unlocked!":
+                                    updateUnlockingStateObs();
+                                    break;
+                                default:
+                                    System.out.println("Unexpected server message:" + s);
                             }
-                            if(s.equals("Server stopped"))
-                            {
-                                f = false;
-                                sendStop();
-                                cs.close();
-                                System.exit(1);
-                            }
-                            
-                            
-                            if(s.equals("Ok!Previous filename sending.")) {
-                                getPrevFilenameFromServer();
-                                updatePrevFilenameObs();    
-                            }    
-
-                            if(s.equals("Error! Failed filename sending!")) {
-                                invalidUsername();
-                            }
-                            
-                            if(s.equals("Registration successful")) {
-                                username = dis.readUTF();
-                                updateRegistrationStatusObs();    
-                            }
-                            
-                            if(s.equals("Error! Failed registration!")) {
-                                invalidRegistration();
-                            }
-                            
-                            
-                            if(s.equals("File list sending")) {
-                                getFileListFromServer();
-                                updateFileListObs();
-                            }
-                                 
-                            if(s.equals("File content sending.")) {
-                                getFileContentFromServer();
-                                updateFileContentObs();  
-                            }  
-                            
-                            if (s.equals("File content with ranges sending.")) {
-                                loadFileContent();
-                                updateFileContentObs();
-                            }
-                            
-                            
-                            if(s.equals("File saved successfully")) {
-                                updateSavingStateObs();
-                            }
-                              
-                            if(s.equals("Ranges was set successfully")) {
-                                loadFileSeparate();
-                                updateRangesStateObs();   
-                            }
-                            if(s.equals("Error with setting ranges")) {
-                                invalidRange();
-                            }
-                            
-                            if(s.equals("Successfully unlocked!")) {
-                                updateUnlockingStateObs();
-                            }
-                        
                         } catch (IOException ex) {
                             Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
                         }
-
                     }
                 }
             }.start();
@@ -185,87 +289,25 @@ public class ClientModel implements IClientModel{
         } 
     }
     
-    @Override
-    public void loginUser(String name, String pass) {
-        try {
-            dos.writeUTF("User login");
-            dos.writeUTF(name);
-            dos.writeUTF(pass);
-            username = name;
-        } catch (IOException ex) {
-                Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex); 
-        }
-    }
-    
     private void getPrevFilenameFromServer() {
         try {
             prevFilename = dis.readUTF();
-  } catch (IOException ex) {
+        } catch (IOException ex) {
                Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex); 
         }
     }
     
-    private void loadFileSeparate() {
-        int start_ = Integer.parseInt(start);
-        int end_ = Integer.parseInt(end);
-        String[] TextData = new String[3];
-        String[] ArrayContent = fileContent.split("\n");
-        for (int i = 0; i < 3; i++) {
-            TextData[i] = "";
-        }
-        int switcher = 0;
-        for (int i = 0; i < ArrayContent.length; i++) {
-            if (i == start_ - 1) {
-                switcher++;
-            }
-            if (i == end_) {
-                switcher++;
-            }
-            TextData[switcher] += ArrayContent[i] + "\n";
-        }
-        if (!TextData[2].isEmpty())
-            TextData[2] = TextData[2].substring(0, TextData[2].length() - 1);
-        else
-            TextData[1] = TextData[1].substring(0, TextData[1].length() - 1);
-        lockedPart1 = TextData[0];
-        unlockedPart = TextData[1];
-        lockedPart2 = TextData[2];
+    private void getFileListFromServer() {
         try {
-            // new part, all above to delete
-            loadFileWithMyLocks();
-        } catch (BadLocationException ex) {
-            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+            fileList = dis.readUTF();            
+        } catch (IOException ex) {
+               Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex); 
         }
     }
     
-    private ArrayList<Range> getSymbolRanges(String content, ArrayList<Range> lineRanges) {
-        if (lineRanges.size() > 0 && content.length() != 0) {
-            ArrayList<Range> symbolRanges = new ArrayList<Range>();
-            Range tmp;
-            int currentStartPosition = 0, currentEndPosition = -1, i;
-            int lineNumber = 0;
-            for (int k = 0; k < lineRanges.size(); k++) {
-                // Finding start of range
-                for (i = currentEndPosition; lineNumber < lineRanges.get(k).getStart()-1; i = content.indexOf("\n", i + 1), lineNumber++);
-                currentStartPosition = i + 1;
-                // Finding end of range
-                for (i = currentStartPosition-1; lineNumber < lineRanges.get(k).getEnd(); i = content.indexOf("\n", i + 1), lineNumber++);
-                currentEndPosition = i >= content.length() - 1 ? content.length() - 2 : i;
-                tmp = new Range(currentStartPosition, currentEndPosition);
-                symbolRanges.add(tmp);
-            }
-            return symbolRanges;
-        } else {
-            System.out.println("Something gone wrong in getSymbolRanges method");
-            return null;
-        }
-    }
-
-    private void loadFileWithMyLocks() throws BadLocationException {
+    private void loadFileWithMyLocks() {
         contentFragments.clear();
-        int start_ = Integer.parseInt(start);
-        int end_ = Integer.parseInt(end);
-        Range tmp = new Range(start_, end_);
+        Range tmp = new Range(startLine, endLine);
         ArrayList<Range> lineRanges = new ArrayList<Range>();
         lineRanges.add(tmp);
         System.out.println("loadFileContent begins");
@@ -316,14 +358,8 @@ public class ClientModel implements IClientModel{
         System.out.println("loadFileContent completed");       
     }
     
-    // loads document with styles
-    public void loadFileContent() {
+    private void loadFileContent() {
         contentFragments.clear();
-//        int start_ = Integer.parseInt(start);
-//        int end_ = Integer.parseInt(end);
-//        Range tmp = new Range(start_, end_);
-//        ArrayList<Range> lineRanges = new ArrayList<Range>();
-//        lineRanges.add(tmp);
         ArrayList<Range> lineRanges = new ArrayList<Range>();
     
         try {
@@ -338,7 +374,6 @@ public class ClientModel implements IClientModel{
         } catch (IOException ex) {
             Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
         
         System.out.println("loadFileContent begins");
         if (lineRanges.size() > 0) {
@@ -388,56 +423,6 @@ public class ClientModel implements IClientModel{
         System.out.println("loadFileContent completed");
     }
     
-    @Override
-    public void sendFileListRequest() {
-        try {
-            dos.writeUTF("Get list of files.");
-        } catch (IOException ex) {
-            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    @Override
-    public void sendFileContentRequest(String filename) {
-        try {
-            dos.writeUTF("Get file content");
-            dos.writeUTF(filename);
-            this.filename = filename;
-        } catch (IOException ex) {
-            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    private static int countLines(String str){
-        String[] lines = str.split("\r\n|\r|\n");
-        return  lines.length;
-    }
-    
-    boolean tryParseInt(String value) {  
-        try {  
-            Integer.parseInt(value);  
-            return true;  
-        } catch (NumberFormatException e) {  
-            return false;  
-        }  
-    }
-    // Нумерация строк с единицы, ноль в стартовом диапазоне недопустим
-    boolean testRange() {
-        boolean parsed = true;
-        int start_ = -1;
-        int end_ = -1;
-        if(tryParseInt(start) && tryParseInt(end)) {
-            start_ = Integer.parseInt(start);
-            end_ = Integer.parseInt(end);
-        }
-
-        int linesCount = countLines(fileContent);
-        if(start_ <= 0 || end_ <= 0 || start_ > end_ || start_ > linesCount || end_ > linesCount ) {
-            return false;
-        } 
-        return true;
-    }
-    
     private int caretPositionToLineNumber(int caretPosition, int startPosition) {
         int i;
         int lineNumber = (caretPosition == 0) ? 1 : 0;
@@ -448,200 +433,93 @@ public class ClientModel implements IClientModel{
         return lineNumber;
     }
     
-    @Override
-    public void sendRangesAndLock(int startSymbol, int endSymbol) {
-        try {
-            this.start = Integer.toString(caretPositionToLineNumber(startSymbol, 0));
-            this.end = Integer.toString(caretPositionToLineNumber(endSymbol, 0));
-            if (!testRange()) {
-                invalidRange();
-                return;
-            }        
-            Range tmp = new Range(startSymbol, endSymbol);
-            symbolLocks.clear();
-            symbolLocks.add(tmp);
-            //Отправляем выбранный диапазон
-            dos.writeUTF("Ranges sending");
-            dos.writeUTF(start);
-            dos.writeUTF(end);
-        } catch (IOException ex) {
-            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
+    private ArrayList<Range> getSymbolRanges(String content, ArrayList<Range> lineRanges) {
+        if (lineRanges.size() > 0 && content.length() != 0) {
+            ArrayList<Range> symbolRanges = new ArrayList<Range>();
+            Range tmp;
+            int currentStartPosition = 0, currentEndPosition = -1, i;
+            int lineNumber = 0;
+            for (int k = 0; k < lineRanges.size(); k++) {
+                // Finding start of range
+                for (i = currentEndPosition; lineNumber < lineRanges.get(k).getStart() - 1; i = content.indexOf("\n", i + 1), lineNumber++);
+                currentStartPosition = i + 1;
+                // Finding end of range
+                for (i = currentStartPosition - 1; lineNumber < lineRanges.get(k).getEnd(); i = content.indexOf("\n", i + 1), lineNumber++);
+                currentEndPosition = i >= content.length() - 1 ? content.length() - 2 : i;
+                tmp = new Range(currentStartPosition, currentEndPosition);
+                symbolRanges.add(tmp);
+            }
+            return symbolRanges;
+        } else {
+            System.out.println("Something gone wrong in getSymbolRanges method");
+            return null;
+        }
+    }
 
-        }
-    }
     
-    @Override
-    public void incEndLock(int value) {
-        // extendable: if we need any lock, just pass it number by parameter
-        Range current = symbolLocks.get(0);
-        current.setEnd(current.getEnd()+value);
-    }
-    
-    @Override
-    public void sendUnlocking() {
-        try {
-            dos.writeUTF("Unlocking");
-        }
-        catch (IOException ex) {
-                Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    public void sendStop() {
-        try {
-            dos.writeUTF("end");
-        } catch (IOException ex) {
-            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    @Override
-    public void sendSaveRequest(String content) {
-        try {
-            dos.writeUTF("File saving");
-            dos.writeUTF(content);
-            String endLineChange = String.valueOf(endLineChanging);
-            dos.writeUTF(endLineChange);
-        } catch (IOException ex) {
-                Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex); 
-        }
-    }
-    
-    private void getFileListFromServer() {
-        try {
-            fileList = dis.readUTF();            
-        } catch (IOException ex) {
-               Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex); 
-        }
-    }
-    
-    private void getFileContentFromServer() {
-        try {
-            // to delete
-            fileContent = dis.readUTF();
-            // part with fragments потом добавить диапазоны локов от серва (сейчас они и не приходят)
-            TextFragment tmpFragment = new TextFragment();
-            tmpFragment.text = fileContent;
-            tmpFragment.isLocked = false;
-            contentFragments.clear();
-            contentFragments.add(tmpFragment);
-            // to delete
-            lockedPart1 = ""; lockedPart2 = "";
-        } catch (IOException ex) {
-            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    void invalidUsername() {
+    private void invalidUsername() {
         for (IObserver o: observers) {
             o.invalidUsername();
         }
     }
     
-    void invalidRegistration() {
+    private void invalidRegistration() {
         for (IObserver o: observers) {
             o.invalidRegistration();
         }
     }
     
-    void invalidRange() {
+    private void invalidRange() {
         for (IObserver o: observers) {
             o.invalidRange();
         }
     }
     
-    void updateIdObs() {
+    private void updateIdObs() {
         for (IObserver o: observers) { 
             o.updateId();
         }
     }
     
-    void updatePrevFilenameObs() {
+    private void updatePrevFilenameObs() {
         for (IObserver o: observers) { 
             o.updatePrevFilename();
         }
     }
     
-    void updateFileListObs() {
+    private void updateFileListObs() {
         for (IObserver o: observers) { 
             o.updateFileList();
         }
     }
     
-    void updateFileContentObs() {
+    private void updateFileContentObs() {
         for (IObserver o: observers) { 
             o.updateFileContent();
         }
     }
     
-    void updateSavingStateObs() {
+    private void updateSavingStateObs() {
         for (IObserver o: observers) { 
             o.updateSavingState();
         }
     }    
     
-    void updateRangesStateObs() {
+    private void updateRangesStateObs() {
         for (IObserver o: observers) { 
             o.updateRangesState();
         }
     }  
     
-    void updateUnlockingStateObs() {
+    private void updateUnlockingStateObs() {
         for (IObserver o : observers) {
             o.updateUnlockingState();
         }
     }
-    @Override
-    public void addObserver(IObserver o)
-    {
-        observers.add(o);
-    }
-    
-    public ArrayList<TextFragment> getTextFragments() {
-        return contentFragments;
-    }
 
-    @Override
-    public int getStartSymbolRange() {
-        return symbolLocks.get(0).getStart();
-    }
-
-    @Override
-    public int getEndSymbolRange() {
-        return symbolLocks.get(0).getEnd();
-    }
-
-    @Override
-    public void incEndLineChanging(int value) {
-        endLineChanging += value;
-    }
-
-    @Override
-    public void registerUser(String login, String pass) {
-        try {
-            dos.writeUTF("User registration");
-            dos.writeUTF(login);
-            dos.writeUTF(pass);
-            username = login;
-        } catch (IOException ex) {
-            Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public void updateRegistrationStatusObs() {
+    private void updateRegistrationStatusObs() {
         for (IObserver o : observers) {
             o.updateRegistrationStatus();
         }
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public void refreshFileContent() {
-        sendFileContentRequest(filename);
     }
 }

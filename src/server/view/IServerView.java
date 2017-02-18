@@ -13,7 +13,7 @@ import server.model.Range;
  * @author al1as
  */
 public interface IServerView {
-    public String[] getRanges();
+    public int[] getRanges();
     public String getName();
     public String getString();
     
