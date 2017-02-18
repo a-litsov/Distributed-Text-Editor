@@ -17,7 +17,7 @@ import server.presenter.IServerPresenter;
 public interface IServerModel {
     public void addToTable(String filename, FileElement element);
     public void delFromTable(String filename, FileElement element);
-    public String putFileElement(String filename, FileElement element);
+    public boolean putFileElement(String filename, FileElement element);
     public void extractFileElement(String filename, FileElement element);
     public String GetFromDB(String Name);
     public void SendToDB(String username, String filename);

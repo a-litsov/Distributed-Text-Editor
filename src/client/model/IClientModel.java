@@ -34,9 +34,6 @@ public interface IClientModel {
     String getPrevFilename();
     String getFileList();
     String getFileContent();
-    String getLockedPart1();
-    String getUnlockedPart();
-    String getLockedPart2();
     int getStartSymbolRange();
     int getEndSymbolRange();
     ArrayList<TextFragment> getTextFragments();

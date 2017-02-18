@@ -35,6 +35,7 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
         StyleConstants.setForeground(lockAttributeSet, Color.GRAY);
     }
     
+    @Override
     public void remove(final int offset, final int length) throws BadLocationException 
     {
         IClientController controller = BClientController.build();

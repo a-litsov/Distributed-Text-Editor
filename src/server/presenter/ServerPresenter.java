@@ -61,8 +61,13 @@ class ServerPresenter extends Thread implements IServerPresenter {
         end = ranges[1];
         Range tmp_range = new Range(Integer.parseInt(start), Integer.parseInt(end));
         element = new FileElement(id, username, tmp_range);
-        String answer = m.putFileElement(filename, element);
-        v.sendMes(answer);
+        Boolean isOk = m.putFileElement(filename, element);
+        if(isOk) 
+            v.sendMes("Ranges was set successfully");
+        else {
+            v.sendMes("Error with setting ranges");   
+            sendFileContent();
+        }
     }
     
     private void Unlock() {
@@ -71,7 +76,15 @@ class ServerPresenter extends Thread implements IServerPresenter {
     
     private void sendFileContent(String filename) {
         String content = m.getFileContent(filename);
-        v.SendFileContent(content);
+        ArrayList<Range> ranges = m.getFileRanges(filename);
+        v.SendFileContent(content, ranges);
+    }
+    
+    private void sendFileContent() {
+        filename = v.getString();
+        String content = m.getFileContent(filename);
+        ArrayList<Range> ranges = m.getFileRanges(filename);
+        v.SendFileContent(content, ranges);
     }
     
     @Override
@@ -144,10 +157,7 @@ class ServerPresenter extends Thread implements IServerPresenter {
                     v.sendMes(m.listFilesForFolder(folder));
                 }
                 if(s.equals("Get file content")) {
-                    filename = v.getString();
-                    String content = m.getFileContent(filename);
-                    ArrayList<Range> ranges = m.getFileRanges(filename);
-                    v.SendFileContent(content, ranges);
+                    sendFileContent();
                 }
                 if(s.equals("Remove name"))
                     m.removeName(username);

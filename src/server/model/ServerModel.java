@@ -87,11 +87,9 @@ public class ServerModel implements IServerModel {
     }
     
     @Override
-    public synchronized String putFileElement(String filename, FileElement element) {
+    public synchronized boolean putFileElement(String filename, FileElement element) {
         ArrayList clients = allFiles.get(filename);
-        boolean f = true;
-        if(clients == null)
-        {
+        if(clients == null) {
             clients = new ArrayList();
             clients.add(element);
             allFiles.put(filename, clients); 
@@ -105,24 +103,14 @@ public class ServerModel implements IServerModel {
                 if(!((start < tmp.getStart() && end < tmp.getStart()) ||
                         (start > tmp.getEnd() && end > tmp.getEnd())))
                 {
-                    f = false;
-                    break;
+                    return false;
                 }              
             }
-            if(f) {
-                clients.add(element);
-                allClient.put(element.getUUID(), element);
-            }
+            clients.add(element);
+            allClient.put(element.getUUID(), element);
         }
-        if(f)
-        {
-            System.out.println("range is:" + element.getStart() + "-" + element.getEnd());
-            this.addToTable(filename, element);
-            return "Ranges was set successfully";
-        } else {
-            System.out.println("Error with setting ranges");
-            return "Error with setting ranges";
-        }
+        this.addToTable(filename, element);
+        return true;
     }
     
     @Override

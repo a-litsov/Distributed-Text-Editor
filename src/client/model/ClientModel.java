@@ -77,20 +77,6 @@ public class ClientModel implements IClientModel{
         return fileContent;
     }
     
-    @Override
-    public String getLockedPart1() {
-        return lockedPart1;
-    }
-    
-    @Override
-    public String getUnlockedPart() {
-        return unlockedPart;
-    }
-    
-    @Override
-    public String getLockedPart2() {
-        return lockedPart2;
-    }
     public void connect() {
         try {
             ip = InetAddress.getLocalHost();

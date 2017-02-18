@@ -65,7 +65,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
      */
     public MainFrame() {
         initComponents();
-        this.setSize(600, 400); // Setting frame size
+        this.setSize(700, 400); // Setting frame size
 
         createNumberedTextPane();
         createMenu();
@@ -197,20 +197,6 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
         }
     }
 
-    private int caretPositionToLineNumber(int caretPosition, JTextPane textPane) {
-        int lineNumber = (caretPosition == 0) ? 1 : 0;
-        try {
-            for (int offset = caretPosition; offset > 0;) {
-                offset = Utilities.getRowStart(textPane, offset) - 1;
-                lineNumber++;
-            }
-        } catch (BadLocationException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        System.out.println("Current line number: " + lineNumber);
-        return lineNumber;
-    }
-
     private void createMenu() {
         JMenuBar menuBar;
         JMenu menu;
@@ -280,16 +266,17 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
                     if (endSymbolNumber == symbolsCount) {
                         endSymbolNumber--;
                     }
+                    IClientController clientController = BClientController.build();
+                    clientController.sendRangesAndLock(startSymbolNumber, endSymbolNumber);
+                    System.out.println("Lock was pased and sended to server.");
                 } catch (BadLocationException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Error while parsing/sending lock.");
                 }
-
-                IClientController clientController = BClientController.build();
-                clientController.sendRangesAndLock(startSymbolNumber, endSymbolNumber);
             }
         });
         menu.add(lockMenuItem);
-
+        
         // Unlock menu item
         unlockMenuItem = new JMenuItem("Unlock");   
         unlockMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, shortcut));
@@ -297,7 +284,7 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
             public void actionPerformed(ActionEvent e) {
                 IClientController clientController = BClientController.build();
                 clientController.sendUnlocking();
-                System.out.println("Unlocking message was sent");
+                System.out.println("Unlocking message was sent and file content in Text pane updated.");
             }
         });
         menu.add(unlockMenuItem);
@@ -384,46 +371,43 @@ public class MainFrame extends javax.swing.JFrame implements IObserver {
     @Override
     public void updateRangesState() {
         // Getting all document from model and updating textPane
-        IClientModel clientModel = BClientModel.build();
-        String lockedPart1 = clientModel.getLockedPart1();
-        String unlockedPart = clientModel.getUnlockedPart();
-        String lockedPart2 = clientModel.getLockedPart2();
-//        appendLockedString(clientModel.getLockedPart1(), mainTextPane);
-//        appendUnlockedString(clientModel.getUnlockedPart(), mainTextPane);
-//        appendLockedString(clientModel.getLockedPart2(), mainTextPane);
-
-        String finalString = lockedPart1 + unlockedPart + lockedPart2;
-        Range tmp = new Range(startSymbolNumber, endSymbolNumber);
-        ArrayList<Range> ranges = new ArrayList<Range>();
-        ranges.add(tmp);
         try {
+            IClientModel clientModel = BClientModel.build();
+            Range tmp = new Range(startSymbolNumber, endSymbolNumber);
+            ArrayList<Range> ranges = new ArrayList<Range>();
+            ranges.add(tmp);
+            mainTextPane.setEditable(true);
             mainDocument.loadFileContent(clientModel.getTextFragments());
+            System.out.println("Ranges state successfully updated.");
         } catch (BadLocationException ex) {
+            System.out.println("Error while ranges state updating.");
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
-        mainTextPane.setEditable(true);
-
     }
 
     @Override
     public void invalidUsername() {
+        System.out.println("Invalid authorization data.");
         statusLabel.setText("Your login or/and password incorrect :(");
         showLoginDialog();
     }
 
     @Override
     public void invalidRange() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("Invalid ranges.");
+        statusLabel.setText("Invalid lock. Please, select unlocked range");
     }
 
     @Override
     public void invalidRegistration() {
+        System.out.println("Invalid registration.");
         statusLabel.setText("Your registration login or/and password incorrect :(");
         showLoginDialog();
     }
 
     @Override
     public void updateRegistrationStatus() {
+        System.out.println("Registration successful.");
         IClientModel model = BClientModel.build();
         String username = model.getUsername();
         statusLabel.setText("Registration successful! Your login:" + username + "");
