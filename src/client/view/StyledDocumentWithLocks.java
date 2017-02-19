@@ -39,7 +39,11 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
     public void remove(final int offset, final int length) throws BadLocationException 
     {
         IClientController controller = BClientController.build();
-        if (offset >= controller.getStartSymbolRange() &&  offset + length <= controller.getEndSymbolRange()+1) {
+        int end = controller.getEndSymbolRange();
+        if (end == this.getLength() - 1) {
+            end++;
+        }
+        if (offset >= controller.getStartSymbolRange() &&  offset + length <= end) {
                 controller.incEndLock(-length);
                 String deletedContent = this.getText(offset, length);
                 

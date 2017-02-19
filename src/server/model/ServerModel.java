@@ -269,7 +269,12 @@ public class ServerModel implements IServerModel {
         }
         outContent += lockedContent;
         if(i+1 < fileContent.length())
-            outContent += fileContent.substring(i+1, fileContent.length() - 1);    
+            outContent += fileContent.substring(i+1, fileContent.length() - 1);
+        i = outContent.length()-1;
+        while(outContent.charAt(i) == '\n') {
+            outContent = outContent.substring(0, i);
+            i--;
+        }
         try {
             PrintWriter printer = new PrintWriter(fullname);
             printer.print(outContent);
