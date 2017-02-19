@@ -262,16 +262,18 @@ class ClientModel implements IClientModel{
                                     break;
                                 case "File saved successfully":
                                     updateSavingStateObs();
+                                    clearChanging();
                                     break;
                                 case "Ranges was set successfully":
                                     loadFileWithMyLocks();
-                                    updateRangesStateObs();  
+                                    updateRangesStateObs();
                                     break;
                                 case "Error with setting ranges":
                                     invalidRange();
                                     break;
                                 case "Successfully unlocked!":
                                     updateUnlockingStateObs();
+                                    clearChanging();
                                     break;
                                 default:
                                     System.out.println("Unexpected server message:" + s);
@@ -453,6 +455,11 @@ class ClientModel implements IClientModel{
             System.out.println("Something gone wrong in getSymbolRanges method");
             return null;
         }
+    }
+    
+    private void clearChanging() {
+        endLineChanging = 0;
+        symbolLocks.clear();
     }
 
     

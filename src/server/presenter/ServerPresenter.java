@@ -114,7 +114,7 @@ class ServerPresenter extends Thread implements IServerPresenter {
                     String LockedContent = v.getString();
                     String endLineChanged = v.getString();
                     int endLineChanging = Integer.parseInt(endLineChanged);
-                    if(endLineChanging > 0)
+                    if(endLineChanging != 0)
                         m.updateRanges(endLineChanging, filename, end, id);
                     m.Save(LockedContent, filename, id, element.getEnd()-endLineChanging);
                     Unlock();

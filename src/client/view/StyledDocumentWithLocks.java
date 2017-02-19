@@ -51,29 +51,41 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
         }
     }
 
-    @Override
-    public void replace(final int offset, final int length, final String text, AttributeSet a) throws BadLocationException 
-    {
-        IClientController controller = BClientController.build();
-        int end = controller.getEndSymbolRange();
-        if(end == this.getLength()-1)
-            end++;
-        if (offset >= controller.getStartSymbolRange() && offset + length <= end) {
-            controller.incEndLock(text.length()-length);
-            String deletedContent = this.getText(offset, length);
-            for(int i = 0; i < length; i++)
-                if(deletedContent.charAt(i) == '\n')
-                    controller.incEndLineChanging(-1);
-            for(int i = 0; i < text.length(); i++)
-                if(text.charAt(i) == '\n')
-                    controller.incEndLineChanging(1);
-            super.replace(offset, length, text, null);
-        }
-    }
+//    @Override
+//    public void replace(final int offset, final int length, final String text, AttributeSet a) throws BadLocationException 
+//    {
+//        IClientController controller = BClientController.build();
+//        int end = controller.getEndSymbolRange();
+//        if(end == this.getLength()-1)
+//            end++;
+//        if (offset >= controller.getStartSymbolRange() && offset + length <= end) {
+//            controller.incEndLock(text.length()-length);
+//            String deletedContent = this.getText(offset, length);
+//            for(int i = 0; i < length; i++)
+//                if(deletedContent.charAt(i) == '\n')
+//                    controller.incEndLineChanging(-1);
+//            for(int i = 0; i < text.length(); i++)
+//                if(text.charAt(i) == '\n')
+//                    controller.incEndLineChanging(1);
+//            super.replace(offset, length, text, null);
+//        }
+//    }
     
     @Override
-    public void insertString(int offs, String str, AttributeSet a) {
-        System.out.println("insertttt");
+    public void insertString(int offset, String str, AttributeSet a) throws BadLocationException {
+        IClientController controller = BClientController.build();
+        int end = controller.getEndSymbolRange();
+        if (end == this.getLength() - 1) {
+            end++;
+        }
+        int length = str.length();
+        if (offset >= controller.getStartSymbolRange() && offset <= end) {
+            controller.incEndLock(length);
+            for (int i = 0; i < length; i++) 
+                if (str.charAt(i) == '\n') 
+                    controller.incEndLineChanging(1);
+            super.insertString(offset, str, a);
+        }
     }
     
     // loads document with styles
