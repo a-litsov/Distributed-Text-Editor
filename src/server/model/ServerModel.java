@@ -270,19 +270,6 @@ public class ServerModel implements IServerModel {
         outContent += lockedContent;
         if(i+1 < fileContent.length())
             outContent += fileContent.substring(i+1, fileContent.length() - 1);    
-//        for (int i = 0; i < ArrayContent.length; i++) {
-//            if (i == element.getStart() - 1) {
-//                switcher++;
-//                i += element.getEnd() - element.getStart() + 1;
-//                // When lock is located at the end of file
-//                if (i >= ArrayContent.length)
-//                    break;
-//            }
-//            TextData[switcher] += ArrayContent[i] + "\n";
-//        }
-//        if (!TextData[1].isEmpty())
-//            TextData[1] = TextData[1].substring(0, TextData[1].length() - 1);
-//        String outContent = TextData[0] + LockedContent + TextData[1];
         try {
             PrintWriter printer = new PrintWriter(fullname);
             printer.print(outContent);

@@ -39,7 +39,7 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
     public void remove(final int offset, final int length) throws BadLocationException 
     {
         IClientController controller = BClientController.build();
-        if (offset >= controller.getStartSymbolRange() &&  offset + length <= controller.getEndSymbolRange()) {
+        if (offset >= controller.getStartSymbolRange() &&  offset + length <= controller.getEndSymbolRange()+1) {
                 controller.incEndLock(-length);
                 String deletedContent = this.getText(offset, length);
                 
@@ -50,26 +50,6 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
                 super.remove(offset, length);
         }
     }
-
-//    @Override
-//    public void replace(final int offset, final int length, final String text, AttributeSet a) throws BadLocationException 
-//    {
-//        IClientController controller = BClientController.build();
-//        int end = controller.getEndSymbolRange();
-//        if(end == this.getLength()-1)
-//            end++;
-//        if (offset >= controller.getStartSymbolRange() && offset + length <= end) {
-//            controller.incEndLock(text.length()-length);
-//            String deletedContent = this.getText(offset, length);
-//            for(int i = 0; i < length; i++)
-//                if(deletedContent.charAt(i) == '\n')
-//                    controller.incEndLineChanging(-1);
-//            for(int i = 0; i < text.length(); i++)
-//                if(text.charAt(i) == '\n')
-//                    controller.incEndLineChanging(1);
-//            super.replace(offset, length, text, null);
-//        }
-//    }
     
     @Override
     public void insertString(int offset, String str, AttributeSet a) throws BadLocationException {
