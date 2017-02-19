@@ -11,15 +11,15 @@ package client.view;
  */
 public interface IObserver {
     void updateId();
-    void updatePrevFilename();
     void updateFileList();
     void updateFileContent();
     void updateSavingState();
     void updateRangesState();
     void updateUnlockingState();
     void updateRegistrationStatus();
+    void updateLoginStatus();
 
-    void invalidUsername();
+    void invalidLogin();
     void invalidRegistration();
     void invalidRange();
 }

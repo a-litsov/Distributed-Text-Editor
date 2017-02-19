@@ -8,7 +8,7 @@ package client.view;
 /**
  *
  * @author al1as
- */
+*/
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -48,7 +48,7 @@ import server.model.Range;
  */
 class MainFrame extends javax.swing.JFrame implements IObserver {
     private JTextPane mainTextPane;
-    private JLabel idLabel, statusLabel, previousFilenameLabel;
+    private JLabel idLabel, statusLabel, usernameLabel;
     private JMenuItem openMenuItem, saveMenuItem, lockMenuItem, unlockMenuItem, refreshMenuItem;
     private StyledDocumentWithLocks mainDocument = new StyledDocumentWithLocks();
     private boolean isLocked = false; // Current state of document
@@ -103,14 +103,14 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
     private void createBottomLabels() {
         idLabel = new JLabel("Identifier");
         statusLabel = new JLabel("Status");
-        previousFilenameLabel = new JLabel("Previous filename");
+        usernameLabel = new JLabel("Username");
         statusLabel.setHorizontalAlignment(JLabel.CENTER);
         statusLabel.setVerticalAlignment(JLabel.CENTER);
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(idLabel, BorderLayout.WEST);
         bottomPanel.add(statusLabel, BorderLayout.CENTER);
-        bottomPanel.add(previousFilenameLabel, BorderLayout.EAST);
+        bottomPanel.add(usernameLabel, BorderLayout.EAST);
 
         this.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
     }
@@ -306,19 +306,6 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
     }
 
     @Override
-    public void updatePrevFilename() {
-        IClientModel model = BClientModel.build();
-        previousFilenameLabel.setText(model.getPrevFilename());
-        statusLabel.setText("Log-in successful! Previous filename loaded.");
-        
-        openMenuItem.setEnabled(true);
-        saveMenuItem.setEnabled(false);
-        refreshMenuItem.setEnabled(false);
-        lockMenuItem.setEnabled(false);
-        unlockMenuItem.setEnabled(false);
-    }
-
-    @Override
     public void updateFileList() {
         IClientModel clientModel = BClientModel.build();
         String fileString = clientModel.getFileList();
@@ -383,7 +370,7 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
     }
 
     @Override
-    public void invalidUsername() {
+    public void invalidLogin() {
         System.out.println("Invalid authorization data.");
         statusLabel.setText("Your login or/and password incorrect :(");
         showLoginDialog();
@@ -392,7 +379,7 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
     @Override
     public void invalidRange() {
         System.out.println("Invalid ranges.");
-        statusLabel.setText("Invalid lock. Please, select unlocked range");
+	statusLabel.setText("Invalid lock. Please, select unlocked range");
     }
 
     @Override
@@ -407,7 +394,8 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
         System.out.println("Registration successful.");
         IClientModel model = BClientModel.build();
         String username = model.getUsername();
-        statusLabel.setText("Registration successful! Your login:" + username);
+        statusLabel.setText("Registration successful!");
+		usernameLabel.setText(username);
         
         openMenuItem.setEnabled(true);
         saveMenuItem.setEnabled(false);
@@ -416,6 +404,21 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
         unlockMenuItem.setEnabled(false);
     }
 
+    @Override
+	public void updateLoginStatus() {
+		System.out.println("Login successful.");
+		IClientModel model = BClientModel.build();
+		String username = model.getUsername();
+		statusLabel.setText("Login successful!");
+		usernameLabel.setText(username);
+
+		openMenuItem.setEnabled(true);
+		saveMenuItem.setEnabled(false);
+		refreshMenuItem.setEnabled(false);
+		lockMenuItem.setEnabled(false);
+		unlockMenuItem.setEnabled(false);
+	}
+	
     @Override
     public void updateUnlockingState() {
         statusLabel.setText("Successfully unlocked!");

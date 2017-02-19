@@ -97,10 +97,7 @@ class ServerPresenter extends Thread implements IServerPresenter {
                 String s = v.getString();
 
                 if(s.equals("Ranges sending")) {
-//                    sendFileContent(filename);
-//                  Здесь не имеет смысла посылать контент, т.к. нужно сделать онлайн-обновление локов и контента у всех
                     GetRanges();
-                    m.SendToDB(element.getUsername(), filename);
                 }
                
                 if(s.equals("Unlocking")) {
@@ -126,26 +123,20 @@ class ServerPresenter extends Thread implements IServerPresenter {
                 if(s.equals("User login")) {
                     username = v.getName();
                     String pass = v.getName();
-                    StringBuilder filename = new StringBuilder();
-                    boolean res = m.loginUser(username, pass, filename);
+                    boolean res = m.loginUser(username, pass);
                     if(res) {
-                        v.sendMes("Ok!Previous filename sending.");
-                        v.sendMes(filename.toString());
+                        v.sendMes("Login successful");
                     } else {
-                        v.sendMes("Error! Failed filename sending!");
+                        v.sendMes("Error! Failed login!");
                     }
                 }
                 
                 if (s.equals("User registration")) {
                     username = v.getName();
                     String pass = v.getName();
-                    StringBuilder filename = new StringBuilder();
-                    boolean res = m.registerUser(username, pass, filename);
+                    boolean res = m.registerUser(username, pass);
                     if (res) {
                         v.sendMes("Registration successful");
-                        v.sendMes(username);
-                        v.sendMes("Ok!Previous filename sending.");
-                        v.sendMes(filename.toString());
                     } else {
                         v.sendMes("Error! Failed registration!");
                     }

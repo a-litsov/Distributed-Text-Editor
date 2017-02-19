@@ -10,8 +10,8 @@ package server.model;
  * @author al1as
  */
 public class Range {
-    int start;
-    int end;
+    private int start;
+    private int end;
     public Range(int start, int end)
     {
         this.start = start;

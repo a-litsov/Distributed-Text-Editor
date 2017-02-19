@@ -19,8 +19,6 @@ public interface IServerModel {
     public void delFromTable(String filename, FileElement element);
     public boolean putFileElement(String filename, FileElement element);
     public void extractFileElement(String filename, FileElement element);
-    public String GetFromDB(String Name);
-    public void SendToDB(String username, String filename);
     public boolean addName(String username);
     public String listFilesForFolder(final File folder);
     public String getFileContent(String FileName);
@@ -32,8 +30,8 @@ public interface IServerModel {
     public void addPresenter(IServerPresenter p);
     public void updateRanges(int value, String filename, int end, UUID id);
     
-    public boolean registerUser(String login, String pass, StringBuilder filename);
-    public boolean loginUser(String login, String pass, StringBuilder filename);
+    public boolean registerUser(String login, String pass);
+    public boolean loginUser(String login, String pass);
     
     public ArrayList getFileRanges(String filename);
 }

@@ -128,58 +128,6 @@ public class ServerModel implements IServerModel {
     }
     
     @Override
-    public String GetFromDB(String Name) {
-        Connection c = null;
-        Statement stmt = null;
-        String short_filename = "Unknown";
-        try {
-          Class.forName("org.sqlite.JDBC");
-          c = DriverManager.getConnection("jdbc:sqlite:FilenamesDB");
-          c.setAutoCommit(false);
-          System.out.println("Opened database successfully");
-
-          stmt = c.createStatement();
-          ResultSet rs = stmt.executeQuery( "SELECT * FROM Filename WHERE Username='" + Name + "';" );
-          if( rs.next() ) {
-            short_filename = rs.getString("Filename");
-          }
-          rs.close();
-          stmt.close();
-          c.close();
-        } catch ( Exception e ) {
-            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-            System.exit(0);
-        }
-        System.out.println("Operation done successfully");
-        return short_filename;
-}
-    
-    @Override
-    public void SendToDB(String username, String filename) {
-        // not works anymore
-        Connection c = null;
-        Statement stmt = null;
-        try {
-            Class.forName("org.sqlite.JDBC");
-            c = DriverManager.getConnection("jdbc:sqlite:FilenamesDB");
-            c.setAutoCommit(false);
-            System.out.println("Opened database successfully");
-
-            stmt = c.createStatement();
-            String sql = "INSERT OR REPLACE INTO Filename (Username, Filename) " +
-                        "VALUES ('" + username + "','" + filename + "') ";
-            stmt.executeUpdate(sql);
-
-            stmt.close();
-            c.commit();
-            c.close();
-        } catch ( Exception e ) {
-            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-        }
-        System.out.println("Records created or updated successfully");    
-    }
-    
-    @Override
     public synchronized boolean addName(String username) {
         boolean res = true;
         if(Names == null) {
@@ -308,15 +256,14 @@ public class ServerModel implements IServerModel {
 
     @Override
     public void updateRanges(int value, String filename, int end, UUID id) {
-        // change this
-        
-        // change others
+        // When user deletes or inserts line in his locked range we should shift other
+	// users range
         ArrayList<FileElement> elements = allFiles.get(filename);
         for(int i = 0; i < elements.size(); i++) {
             FileElement curElement = elements.get(i);
-            if(curElement.getUUID().equals(id))
+            if(curElement.getUUID().equals(id)) // Change own
                 curElement.setEnd(curElement.getEnd() + value);
-            else if(curElement.getStart() >= end) {
+            else if(curElement.getStart() >= end) { // Change others
                 curElement.setStart(curElement.getStart() + value);
                 curElement.setEnd(curElement.getEnd() + value);
             }
@@ -324,10 +271,9 @@ public class ServerModel implements IServerModel {
     }
 
     @Override
-    public boolean registerUser(String login, String pass, StringBuilder filename) {
+    public boolean registerUser(String login, String pass) {
         Connection c = null;
         PreparedStatement stmt = null;
-        filename.append("Unknown");
         String dbFilename = "users.db";
         boolean result = false;
         try {
@@ -348,10 +294,9 @@ public class ServerModel implements IServerModel {
             
             // if not then adding him in table
             if  (result) {
-                stmt = c.prepareStatement("insert into users values(?,?,?)");
+                stmt = c.prepareStatement("insert into users values(?,?)");
                 stmt.setString(1, login);
                 stmt.setString(2, pass);
-                stmt.setString(3, filename.toString());
                 stmt.executeUpdate();
                 stmt.close();
                 c.commit();
@@ -366,7 +311,7 @@ public class ServerModel implements IServerModel {
     }
 
     @Override
-    public boolean loginUser(String login, String pass, StringBuilder filename) {
+    public boolean loginUser(String login, String pass) {
         Connection c = null;
         PreparedStatement stmt = null;
         String dbFilename = "users.db";
@@ -383,7 +328,6 @@ public class ServerModel implements IServerModel {
             stmt.setString(2, pass);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                filename.append(rs.getString("Filename"));
                 result = true;
             }
             rs.close();

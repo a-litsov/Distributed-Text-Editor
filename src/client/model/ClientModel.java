@@ -101,12 +101,12 @@ class ClientModel implements IClientModel{
     }
     
     @Override
-    public void loginUser(String name, String pass) {
+    public void loginUser(String login, String pass) {
         try {
             dos.writeUTF("User login");
-            dos.writeUTF(name);
+            dos.writeUTF(login);
             dos.writeUTF(pass);
-            username = name;
+            username = login;
         } catch (IOException ex) {
             Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -238,15 +238,13 @@ class ClientModel implements IClientModel{
                                     cs.close();
                                     System.exit(1);
                                     break;
-                                case "Ok!Previous filename sending.":
-                                    getPrevFilenameFromServer();
-                                    updatePrevFilenameObs();
+								case "Login successful":
+                                    updateLoginStatusObs();
                                     break;
-                                case "Error! Failed filename sending!":
-                                    invalidUsername();
-                                    break;
+								case "Error! Failed login!":
+									invalidLogin();
+									break;
                                 case "Registration successful":
-                                    username = dis.readUTF();
                                     updateRegistrationStatusObs();
                                     break;
                                 case "Error! Failed registration!":
@@ -463,9 +461,9 @@ class ClientModel implements IClientModel{
     }
 
     
-    private void invalidUsername() {
+    private void invalidLogin() {
         for (IObserver o: observers) {
-            o.invalidUsername();
+            o.invalidLogin();
         }
     }
     
@@ -484,12 +482,6 @@ class ClientModel implements IClientModel{
     private void updateIdObs() {
         for (IObserver o: observers) { 
             o.updateId();
-        }
-    }
-    
-    private void updatePrevFilenameObs() {
-        for (IObserver o: observers) { 
-            o.updatePrevFilename();
         }
     }
     
@@ -526,6 +518,12 @@ class ClientModel implements IClientModel{
     private void updateRegistrationStatusObs() {
         for (IObserver o : observers) {
             o.updateRegistrationStatus();
+        }
+    }
+	
+	private void updateLoginStatusObs() {
+        for (IObserver o: observers) { 
+            o.updateLoginStatus();
         }
     }
 }
