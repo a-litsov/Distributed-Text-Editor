@@ -10,6 +10,22 @@ package client.view;
  * @author al1as
  */
 public class TextFragment {
-    public String text;
-    public boolean isLocked = false;
+    private String text;
+    private boolean isLocked = false;
+    
+    public String getText() {
+        return text;
+    }
+    
+    public boolean isLocked() {
+        return isLocked;
+    }
+    
+    public void setText(String text) {
+        this.text = text;
+    }
+    
+    public void setLocked(boolean isLocked) {
+        this.isLocked = isLocked;
+    }
 }

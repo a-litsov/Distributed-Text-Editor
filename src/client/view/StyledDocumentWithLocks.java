@@ -80,13 +80,13 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
         super.remove(0, this.getLength());
         for(int i = 0; i < fragments.size(); i++) {
             TextFragment curFragment = fragments.get(i);
-            if(curFragment.isLocked) {
-                end = start + curFragment.text.length() - 1;
-                super.insertString(start, curFragment.text, lockAttributeSet);
+            if(curFragment.isLocked()) {
+                end = start + curFragment.getText().length() - 1;
+                super.insertString(start, curFragment.getText(), lockAttributeSet);
                 start = end + 1;
             } else {
-                end = start + curFragment.text.length() - 1;
-                super.insertString(start, curFragment.text, null);
+                end = start + curFragment.getText().length() - 1;
+                super.insertString(start, curFragment.getText(), null);
                 start = end + 1; 
             }
         }

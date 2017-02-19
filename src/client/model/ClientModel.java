@@ -320,29 +320,29 @@ class ClientModel implements IClientModel{
                 // adding first locked part
                 end = symbolRanges.get(0).getStart();
                 TextFragment tmpFragment = new TextFragment();
-                tmpFragment.text = tmpFileContent.substring(0, end);
-                tmpFragment.isLocked = true;
+                tmpFragment.setText(tmpFileContent.substring(0, end));
+                tmpFragment.setLocked(true);
                 contentFragments.add(tmpFragment);
                 // adding unlocked parts
                 for (int i = 0; i < symbolRanges.size(); i++) {
                     start = symbolRanges.get(i).getStart();
                     end = symbolRanges.get(i).getEnd() + 1;
                     tmpFragment = new TextFragment();
-                    tmpFragment.text = tmpFileContent.substring(start, end);
-                    tmpFragment.isLocked = false;
+                    tmpFragment.setText(tmpFileContent.substring(start, end));
+                    tmpFragment.setLocked(false);
                     contentFragments.add(tmpFragment);
                     if (i + 1 < symbolRanges.size()) {
                         start = end;
                         end = symbolRanges.get(i+1).getStart();
                         tmpFragment = new TextFragment();
-                        tmpFragment.text = tmpFileContent.substring(start, end);
-                        tmpFragment.isLocked = true;
+                        tmpFragment.setText(tmpFileContent.substring(start, end));
+                        tmpFragment.setLocked(true);
                         contentFragments.add(tmpFragment);
                     } else {
                         // check if file end
                         tmpFragment = new TextFragment();
-                        tmpFragment.text = fileContent.substring(end);
-                        tmpFragment.isLocked = true;
+                        tmpFragment.setText(fileContent.substring(end));
+                        tmpFragment.setLocked(true);
                         contentFragments.add(tmpFragment);
                     }
                 }
@@ -351,8 +351,8 @@ class ClientModel implements IClientModel{
             }
         } else {
             TextFragment tmpFragment = new TextFragment();
-            tmpFragment.text = fileContent;
-            tmpFragment.isLocked = true;
+            tmpFragment.setText(fileContent);
+            tmpFragment.setLocked(true);
             contentFragments.add(tmpFragment);
             System.out.println("lineRanges is empty");
         }
@@ -385,29 +385,29 @@ class ClientModel implements IClientModel{
                 // adding first unlocked part
                 end = symbolRanges.get(0).getStart();
                 TextFragment tmpFragment = new TextFragment();
-                tmpFragment.text = tmpFileContent.substring(0, end);
-                tmpFragment.isLocked = false;
+                tmpFragment.setText(tmpFileContent.substring(0, end));
+                tmpFragment.setLocked(false);
                 contentFragments.add(tmpFragment);
                 // adding locked parts
                 for (int i = 0; i < symbolRanges.size(); i++) {
                     start = symbolRanges.get(i).getStart();
                     end = symbolRanges.get(i).getEnd()+1;
                     tmpFragment = new TextFragment();
-                    tmpFragment.text = tmpFileContent.substring(start, end);
-                    tmpFragment.isLocked = true;
+                    tmpFragment.setText(tmpFileContent.substring(start, end));
+                    tmpFragment.setLocked(true);
                     contentFragments.add(tmpFragment);
                     if (i + 1 < symbolRanges.size()) {
                         start = end;
                         end = symbolRanges.get(i+1).getStart();
                         tmpFragment = new TextFragment();
-                        tmpFragment.text = tmpFileContent.substring(start, end);
-                        tmpFragment.isLocked = false;
+                        tmpFragment.setText(tmpFileContent.substring(start, end));
+                        tmpFragment.setLocked(false);
                         contentFragments.add(tmpFragment);
                     } else {
                         // check if file end
                         tmpFragment = new TextFragment();
-                        tmpFragment.text = fileContent.substring(end);
-                        tmpFragment.isLocked = false;
+                        tmpFragment.setText(fileContent.substring(end));
+                        tmpFragment.setLocked(false);
                         contentFragments.add(tmpFragment);
                     }
                 }
@@ -416,8 +416,8 @@ class ClientModel implements IClientModel{
             }
         } else {
             TextFragment tmpFragment = new TextFragment();
-            tmpFragment.text = fileContent;
-            tmpFragment.isLocked = false;
+            tmpFragment.setText(fileContent);
+            tmpFragment.setLocked(false);
             contentFragments.add(tmpFragment);
             System.out.println("lineRanges is empty");
         }
