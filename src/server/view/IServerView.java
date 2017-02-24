@@ -14,11 +14,9 @@ import server.model.Range;
  */
 public interface IServerView {
     public int[] getRanges();
-    public String getName();
     public String getString();
     
-    public void sendMes(String mes);
-    public void sendPrevFilename(String prevFilename);
+    public void sendString(String str);
     public void SendFileContent(String content);
     public void SendFileContent(String content, ArrayList<Range> ranges);
 }

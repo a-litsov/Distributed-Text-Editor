@@ -77,6 +77,8 @@ public class ServerModel implements IServerModel {
     
     @Override
     public synchronized void delFromTable(String filename, FileElement element) {
+		// Is a better way to store here not JTable, but AbstractTableModel, do this things and then fire 
+		// tableModel.fireTableDataChanged(); or fireTableRowsDeleted and fireTableRowsInserted(it is better way, ok)
         DefaultTableModel model = (DefaultTableModel)table.getModel();
         int row_num = getRowByValue(model, element.username);
         Object[] row = { filename, Integer.toString(element.range.getStart()) + "-" +

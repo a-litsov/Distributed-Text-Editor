@@ -63,10 +63,10 @@ class ServerPresenter extends Thread implements IServerPresenter {
         element = new FileElement(id, username, tmp_range);
         Boolean isOk = m.putFileElement(filename, element);
         if(isOk) 
-            v.sendMes("Ranges was set successfully");
+            v.sendString("Ranges was set successfully");
         else {
-            sendFileContent(filename);
-            v.sendMes("Error with setting ranges");   
+            sendFileContent();
+            v.sendString("Error with setting ranges");   
         }
     }
     
@@ -74,14 +74,7 @@ class ServerPresenter extends Thread implements IServerPresenter {
         m.extractFileElement(filename, element);
     }
     
-    private void sendFileContent(String filename) {
-        String content = m.getFileContent(filename);
-        ArrayList<Range> ranges = m.getFileRanges(filename);
-        v.SendFileContent(content, ranges);
-    }
-    
     private void sendFileContent() {
-        filename = v.getString();
         String content = m.getFileContent(filename);
         ArrayList<Range> ranges = m.getFileRanges(filename);
         v.SendFileContent(content, ranges);
@@ -89,77 +82,68 @@ class ServerPresenter extends Thread implements IServerPresenter {
     
     @Override
     public void run() {
-        v.sendMes(id.toString());
+        v.sendString(id.toString());
         System.out.println("send ID");
         
         while(f)
         {
-                String s = v.getString();
-
-                if(s.equals("Ranges sending")) {
-                    GetRanges();
-                }
-               
-                if(s.equals("Unlocking")) {
-                    Unlock();
-                    sendFileContent(filename);
-                    v.sendMes("Successfully unlocked!");
-                }
-//                
-//                
-                if(s.equals("File saving")) {
-                    String LockedContent = v.getString();
-                    String endLineChanged = v.getString();
-                    int endLineChanging = Integer.parseInt(endLineChanged);
-                    if(endLineChanging != 0)
-                        m.updateRanges(endLineChanging, filename, end, id);
-                    m.Save(LockedContent, filename, id, element.getEnd()-endLineChanging);
-                    Unlock();
-                    sendFileContent(filename);
-                    v.sendMes("File saved successfully");
-                }
-                
-                
-                if(s.equals("User login")) {
-                    username = v.getName();
-                    String pass = v.getName();
-                    boolean res = m.loginUser(username, pass);
-                    if(res) {
-                        v.sendMes("Login successful");
-                    } else {
-                        v.sendMes("Error! Failed login!");
-                    }
-                }
-                
-                if (s.equals("User registration")) {
-                    username = v.getName();
-                    String pass = v.getName();
-                    boolean res = m.registerUser(username, pass);
-                    if (res) {
-                        v.sendMes("Registration successful");
-                    } else {
-                        v.sendMes("Error! Failed registration!");
-                    }
-                }
-                
-                
-                if(s.equals("Get list of files.")) {
-                    final File folder = new File("Shared");
-                    v.sendMes("File list sending");
-                    v.sendMes(m.listFilesForFolder(folder));
-                }
-                if(s.equals("Get file content")) {
-                    sendFileContent();
-                }
-                if(s.equals("Remove name"))
-                    m.removeName(username);
-                if(s.equals("end"))
-                    f = false;         
+			String s = v.getString();
+			switch(s) {
+				case "Ranges sending":
+					GetRanges();
+					break;
+				case "Unlocking":
+					Unlock();
+					sendFileContent();
+					v.sendString("Successfully unlocked!");
+					break;
+				case "File saving":
+					String LockedContent = v.getString();
+					String endLineChanged = v.getString();
+					int endLineChanging = Integer.parseInt(endLineChanged);
+					if (endLineChanging != 0)
+						m.updateRanges(endLineChanging, filename, end, id);
+					m.Save(LockedContent, filename, id, element.getEnd() - endLineChanging);
+					Unlock();
+					sendFileContent();
+					v.sendString("File saved successfully");
+					break;
+				case "User login":
+					username = v.getString();
+					String passHash = v.getString();
+					boolean res = m.loginUser(username, passHash);
+					if (res)
+						v.sendString("Login successful");
+					else
+						v.sendString("Error! Failed login!");
+					break;
+				case "User registration":
+					username = v.getString();
+					passHash = v.getString();
+					res = m.registerUser(username, passHash);
+					if (res)
+						v.sendString("Registration successful");
+					 else
+						v.sendString("Error! Failed registration!");
+					break;
+				case "Get list of files.":
+					final File folder = new File("Shared");
+					v.sendString("File list sending");
+					v.sendString(m.listFilesForFolder(folder));
+					break;
+				case "Get file content":
+					filename = v.getString();
+					sendFileContent();
+					break;
+				case "end":
+					f = false;
+					break;
+			}     
         }
     }
     
     public void update() {
         if(m.getMessage().equals("end"))
-            v.sendMes("Server stopped");
+            v.sendString("Server stopped");
     }
 }

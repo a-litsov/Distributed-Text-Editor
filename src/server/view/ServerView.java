@@ -48,20 +48,9 @@ public class ServerView implements IServerView {
     }
 
     @Override
-    public String getName() {
-        String username = "null";
+    public void sendString(String str) {
         try {
-            username = dis.readUTF();
-        } catch (IOException ex) {
-            Logger.getLogger(ServerView.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return username;
-    }
-
-    @Override
-    public void sendMes(String mes) {
-        try {
-            dos.writeUTF(mes);
+            dos.writeUTF(str);
         } catch (IOException ex) {
             Logger.getLogger(ServerView.class.getName()).log(Level.SEVERE, null, ex);
         }  
@@ -91,16 +80,6 @@ public class ServerView implements IServerView {
         } catch (IOException ex) {
             Logger.getLogger(ServerView.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    @Override
-    public void sendPrevFilename(String prevFilename) {
-        try {
-            dos.writeUTF("Ok!Previous filename sending.");
-            dos.writeUTF(prevFilename);
-        } catch (IOException ex) {
-            Logger.getLogger(ServerView.class.getName()).log(Level.SEVERE, null, ex);
-        }  
     }
 
     @Override

@@ -46,7 +46,7 @@ import server.model.Range;
  *
  * @author al1as
  */
-class MainFrame extends javax.swing.JFrame implements IObserver {
+public class ClientView extends javax.swing.JFrame implements IObserver, IClientView {
     private JTextPane mainTextPane;
     private JLabel idLabel, statusLabel, usernameLabel;
     private JMenuItem openMenuItem, saveMenuItem, lockMenuItem, unlockMenuItem, refreshMenuItem;
@@ -58,7 +58,7 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
     /**
      * Creates new form MainFrame
      */
-    public MainFrame() {
+    public ClientView() {
         initComponents();
         this.setSize(700, 400); // Setting frame size
 
@@ -82,6 +82,8 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
             }
         });
 
+		this.setVisible(true);
+		
     }
 
     private void createNumberedTextPane() {
@@ -129,8 +131,9 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
         }
         return null;
     }
-
-    private void showLoginDialog() {
+	
+	@Override
+    public void showLoginDialog() {
         // Creates dialog's components and shows them
         JTextField login = new JTextField(10);
         JPasswordField password = new JPasswordField(10);
@@ -236,7 +239,7 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
                     clientController.sendSaveRequest(content);
                     System.out.println("Modified content sent, here it is:\n" + content);
                 } catch (BadLocationException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                     System.out.println("Modified content parsing/sending error.");
                 }
             }
@@ -276,7 +279,7 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
                     clientController.sendRangesAndLock(startSymbolNumber, endSymbolNumber);
                     System.out.println("Lock was pased and sended to server.");
                 } catch (BadLocationException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
                     System.out.println("Error while parsing/sending lock.");
                 }
             }
@@ -328,7 +331,7 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
             
             lockMenuItem.setEnabled(true);
         } catch (BadLocationException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("Error while file content loading.");
         }
     }
@@ -365,7 +368,7 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
             unlockMenuItem.setEnabled(true);
         } catch (BadLocationException ex) {
             System.out.println("Error while lock applying.");
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -456,8 +459,33 @@ class MainFrame extends javax.swing.JFrame implements IObserver {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 UIManager.put("swing.boldMetal", Boolean.FALSE);
-                new MainFrame().setVisible(true);
+                new ClientView().setVisible(true);
             }
         });
     }
+
+	@Override
+	public void addOpenListener(ActionListener openListener) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void addSaveListener(ActionListener saveListener) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void addRefreshListener(ActionListener refreshListene) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void addLockListener(ActionListener lockListener) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void addUnlockListener(ActionListener unlockListener) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
 }

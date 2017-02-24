@@ -5,7 +5,6 @@
  */
 package server;
 
-import server.model.ServerThread;
 import javax.swing.table.DefaultTableModel;
 
 /**
