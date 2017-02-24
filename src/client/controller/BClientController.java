@@ -10,7 +10,7 @@ package client.controller;
  * @author al1as
  */
 public class BClientController {
-    static ClientController clientController = new ClientController();
+    static IClientController clientController = new ClientController();
     
     public static IClientController build() {
         return clientController;

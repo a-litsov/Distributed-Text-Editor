@@ -7,6 +7,9 @@ package client.controller;
 
 import client.model.BClientModel;
 import client.model.IClientModel;
+import client.view.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  *
@@ -15,6 +18,20 @@ import client.model.IClientModel;
 public class ClientController implements IClientController {
 
     private IClientModel clientModel;
+	private IClientView clientView;
+	
+	public ClientController() {
+		clientModel = BClientModel.build();
+		clientView = BClientView.build();
+		clientView.addOpenListener(new OpenListener());
+		connect();
+	}
+	
+	class OpenListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			clientModel.sendFileListRequest();
+		}
+	}
     
     @Override
     public void loginUser(String name, String pass) {

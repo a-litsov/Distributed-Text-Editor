@@ -54,6 +54,7 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
     private boolean isLocked = false; // Current state of document
     private int startSymbolNumber, endSymbolNumber;
     private int symbolsCount;
+	private IClientController clientController;
 
     /**
      * Creates new form MainFrame
@@ -69,11 +70,7 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         // Adds current frame to model observers list
         IClientModel clientModel = BClientModel.build();
         clientModel.addObserver(this);
-
-        // Connects current client to server
-        IClientController clientController = BClientController.build();
-        clientController.connect();
-
+		
         this.addWindowListener(new WindowAdapter() {
             // Invoked when a window has been opened.
             public void windowOpened(WindowEvent e) {
@@ -90,7 +87,7 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         mainTextPane = new JTextPane();
         // adding locked document
         mainTextPane.setDocument(mainDocument);
-        mainTextPane.setText("Empty document");
+//        mainTextPane.setText("Empty document");
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(mainTextPane, BorderLayout.CENTER);
@@ -215,12 +212,12 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         // Adds cmd+O(ctrl+O for win users) shortcut for Open menu item
         openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcut));
         // Adds action for Open menu item - sends file list request to server
-        openMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                IClientController clientController = BClientController.build();
-                clientController.sendFileListRequest();
-            }
-        });
+//        openMenuItem.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                IClientController clientController = BClientController.build();
+//                clientController.sendFileListRequest();
+//            }
+//        });
         menu.add(openMenuItem);
 
         // Same actions for Save menu item
@@ -466,7 +463,7 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
 
 	@Override
 	public void addOpenListener(ActionListener openListener) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		openMenuItem.addActionListener(openListener);
 	}
 
 	@Override
