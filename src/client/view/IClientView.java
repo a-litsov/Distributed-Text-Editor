@@ -14,6 +14,8 @@ import java.awt.event.ActionListener;
 public interface IClientView {
 	void showLoginDialog();
 	String getSavingContent();
+	int getStartLockPos();
+	int getEndLockPos();
 	
 	void addOpenListener(ActionListener openListener);
 	void addSaveListener(ActionListener saveListener);

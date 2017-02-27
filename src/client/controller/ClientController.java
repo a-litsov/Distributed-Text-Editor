@@ -25,6 +25,9 @@ public class ClientController implements IClientController {
 		clientView = BClientView.build();
 		clientView.addOpenListener(new OpenListener());
 		clientView.addSaveListener(new SaveListener());
+		clientView.addRefreshListener(new RefreshListener());
+		clientView.addLockListener(new LockListener());
+		clientView.addUnlockListener(new UnlockListener());
 		connect();
 	}
 	
@@ -39,6 +42,29 @@ public class ClientController implements IClientController {
 			String content = clientView.getSavingContent();
 			sendSaveRequest(content);
 			System.out.println("Modified content sent, here it is:\n" + content);
+		}
+	}
+	
+	class RefreshListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			refreshFileContent();
+			System.out.println("Content refresh request was sent.\n");
+		}
+	}
+	
+	class LockListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			int startSymbolNumber = clientView.getStartLockPos();
+			int endSymbolNumber = clientView.getEndLockPos();
+			sendRangesAndLock(startSymbolNumber, endSymbolNumber);
+			System.out.println("Lock was parsed and sended to server.");
+		}
+	}
+	
+	class UnlockListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			sendUnlocking();
+			System.out.println("Unlocking message was sent and file content in Text pane updated.");
 		}
 	}
 	  

@@ -221,12 +221,6 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         // Same actions for Refresh menu item
         refreshMenuItem = new JMenuItem("Refresh");
         refreshMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, shortcut));
-        refreshMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                IClientController clientController = BClientController.build();
-                clientController.refreshFileContent();
-            }
-        });
         menu.add(refreshMenuItem);
         
         //Build the Lock menu in menubar
@@ -236,38 +230,11 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         // Lock menu item
         lockMenuItem = new JMenuItem("Lock selected lines");
         lockMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, shortcut));
-        lockMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //  Here's going selection ranges analyzing part
-                System.out.println("Getting selected lines range:\n");
-                try {
-                    startSymbolNumber = Utilities.getRowStart(mainTextPane, mainTextPane.getSelectionStart());
-                    endSymbolNumber = Utilities.getRowEnd(mainTextPane, mainTextPane.getSelectionEnd());
-                    // By default JTextPane adds extra newline charater at the end of each paragraph
-                    if (endSymbolNumber == symbolsCount) {
-                        endSymbolNumber--;
-                    }
-                    IClientController clientController = BClientController.build();
-                    clientController.sendRangesAndLock(startSymbolNumber, endSymbolNumber);
-                    System.out.println("Lock was pased and sended to server.");
-                } catch (BadLocationException ex) {
-                    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-                    System.out.println("Error while parsing/sending lock.");
-                }
-            }
-        });
         menu.add(lockMenuItem);
         
         // Unlock menu item
         unlockMenuItem = new JMenuItem("Unlock");   
         unlockMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, shortcut));
-        unlockMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                IClientController clientController = BClientController.build();
-                clientController.sendUnlocking();
-                System.out.println("Unlocking message was sent and file content in Text pane updated.");
-            }
-        });
         menu.add(unlockMenuItem);
         
         this.setJMenuBar(menuBar);
@@ -448,18 +415,18 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
 	}
 
 	@Override
-	public void addRefreshListener(ActionListener refreshListene) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public void addRefreshListener(ActionListener refreshListener) {
+		refreshMenuItem.addActionListener(refreshListener);
 	}
 
 	@Override
 	public void addLockListener(ActionListener lockListener) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		lockMenuItem.addActionListener(lockListener);
 	}
-
+	
 	@Override
 	public void addUnlockListener(ActionListener unlockListener) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		unlockMenuItem.addActionListener(unlockListener);
 	}
 
 	@Override
@@ -478,4 +445,34 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
 		}
 		return content;
 	}
+
+	@Override
+	public int getStartLockPos() {
+		int startLockPos = -1;
+		try {
+			startLockPos =  Utilities.getRowStart(mainTextPane, mainTextPane.getSelectionStart());
+		} catch (BadLocationException ex) {
+			Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+			System.out.println("Start lock position parsing error!");
+		}
+		return startLockPos;
+	}
+
+	@Override
+	public int getEndLockPos() {
+		int endLockPos = -1;
+		try {
+			endLockPos = Utilities.getRowEnd(mainTextPane, mainTextPane.getSelectionEnd());
+			// By default JTextPane adds extra newline charater at the end of each paragraph
+			if (endLockPos == symbolsCount) {
+				endLockPos--;
+			}
+		} catch (BadLocationException ex) {
+			Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+			System.out.println("End lock position parsing error!");
+		}
+		return endLockPos;
+	}
+	
+	
 }
