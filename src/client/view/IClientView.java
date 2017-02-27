@@ -13,6 +13,7 @@ import java.awt.event.ActionListener;
  */
 public interface IClientView {
 	void showLoginDialog();
+	String getSavingContent();
 	
 	void addOpenListener(ActionListener openListener);
 	void addSaveListener(ActionListener saveListener);

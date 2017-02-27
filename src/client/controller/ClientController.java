@@ -24,6 +24,7 @@ public class ClientController implements IClientController {
 		clientModel = BClientModel.build();
 		clientView = BClientView.build();
 		clientView.addOpenListener(new OpenListener());
+		clientView.addSaveListener(new SaveListener());
 		connect();
 	}
 	
@@ -32,7 +33,15 @@ public class ClientController implements IClientController {
 			clientModel.sendFileListRequest();
 		}
 	}
-    
+	
+	class SaveListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			String content = clientView.getSavingContent();
+			sendSaveRequest(content);
+			System.out.println("Modified content sent, here it is:\n" + content);
+		}
+	}
+	  
     @Override
     public void loginUser(String name, String pass) {
         clientModel = BClientModel.build();

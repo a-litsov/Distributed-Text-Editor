@@ -211,36 +211,11 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         openMenuItem = new JMenuItem("Open");
         // Adds cmd+O(ctrl+O for win users) shortcut for Open menu item
         openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcut));
-        // Adds action for Open menu item - sends file list request to server
-//        openMenuItem.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                IClientController clientController = BClientController.build();
-//                clientController.sendFileListRequest();
-//            }
-//        });
         menu.add(openMenuItem);
 
         // Same actions for Save menu item
         saveMenuItem = new JMenuItem("Save");
         saveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcut));
-        saveMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    IClientController clientController = BClientController.build();
-                    int startSymbol = clientController.getStartSymbolRange();
-                    int endSymbol = clientController.getEndSymbolRange();
-
-                    String content = "";
-                    content = mainDocument.getText(startSymbol, endSymbol - startSymbol + 1);
-
-                    clientController.sendSaveRequest(content);
-                    System.out.println("Modified content sent, here it is:\n" + content);
-                } catch (BadLocationException ex) {
-                    Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
-                    System.out.println("Modified content parsing/sending error.");
-                }
-            }
-        });
         menu.add(saveMenuItem);
         
         // Same actions for Refresh menu item
@@ -327,6 +302,7 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
             System.out.println("File content successfully loaded!");
             
             lockMenuItem.setEnabled(true);
+			refreshMenuItem.setEnabled(true);
         } catch (BadLocationException ex) {
             Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("Error while file content loading.");
@@ -468,7 +444,7 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
 
 	@Override
 	public void addSaveListener(ActionListener saveListener) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		saveMenuItem.addActionListener(saveListener);
 	}
 
 	@Override
@@ -484,5 +460,22 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
 	@Override
 	public void addUnlockListener(ActionListener unlockListener) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public String getSavingContent() {
+		String content = "null";
+		try {
+			IClientController clientController = BClientController.build();
+			int startSymbol = clientController.getStartSymbolRange();
+			int endSymbol = clientController.getEndSymbolRange();
+
+			content = mainDocument.getText(startSymbol, endSymbol - startSymbol + 1);
+			return content;
+		} catch (BadLocationException ex) {
+			Logger.getLogger(ClientView.class.getName()).log(Level.SEVERE, null, ex);
+			System.out.println("Modified content parsing/sending error.");
+		}
+		return content;
 	}
 }
