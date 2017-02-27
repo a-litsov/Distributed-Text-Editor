@@ -13,6 +13,12 @@ import java.awt.event.ActionListener;
  * @author al1as
  */
 public interface IClientView {
+	void createNumberedTextPane();
+	void createMenu();
+	void createBottomLabels();
+	void setStatus(String status);
+	void showForm();
+	
 	void showLoginDialog();
 	String getSavingContent();
 	int getStartLockPos();

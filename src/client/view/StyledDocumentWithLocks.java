@@ -31,16 +31,17 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
     SimpleAttributeSet lockAttributeSet = new SimpleAttributeSet();
     boolean isActivated = false;
 	ArrayList<ILockObserver> obsList = new ArrayList<ILockObserver>();
+	IClientController controller;
     
-    public StyledDocumentWithLocks() 
+    public StyledDocumentWithLocks(IClientController controller) 
     {
+		this.controller = controller;
         StyleConstants.setForeground(lockAttributeSet, Color.GRAY);
     }
     
     @Override
     public void remove(final int offset, final int length) throws BadLocationException 
     {
-        IClientController controller = BClientController.build();
         int end = controller.getEndSymbolRange();
         if (end == this.getLength() - 1) {
             end++;
@@ -61,7 +62,6 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
     
     @Override
     public void insertString(int offset, String str, AttributeSet a) throws BadLocationException {
-        IClientController controller = BClientController.build();
         int end = controller.getEndSymbolRange();
         if (end == this.getLength() - 1) {
             end++;

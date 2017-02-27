@@ -19,7 +19,6 @@ public class ClientMVC {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
         }
 		IClientModel model = BClientModel.build();
-		IClientView view = BClientView.build();
-		IClientController controller = BClientController.build();
+		IClientController controller = BClientController.build(model);
 	}
 }

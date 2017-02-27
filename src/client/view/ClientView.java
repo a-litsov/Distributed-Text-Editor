@@ -38,6 +38,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Utilities;
@@ -51,40 +52,33 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
     private JTextPane mainTextPane;
     private JLabel idLabel, statusLabel, usernameLabel;
     private JMenuItem openMenuItem, saveMenuItem, lockMenuItem, unlockMenuItem, refreshMenuItem;
-    private StyledDocumentWithLocks mainDocument = new StyledDocumentWithLocks();
+    private StyledDocumentWithLocks mainDocument;
     private boolean isLocked = false; // Current state of document
     private int startSymbolNumber, endSymbolNumber;
     private int symbolsCount;
 	private IClientController clientController;
+	private IClientModel clientModel;
 
     /**
      * Creates new form MainFrame
      */
-    public ClientView() {
+    public ClientView(IClientModel clientModel, IClientController clientController) {
         initComponents();
-        this.setSize(700, 400); // Setting frame size
-
-        createNumberedTextPane();
-        createMenu();
-        createBottomLabels();
-
+        this.clientController = clientController;
+		this.clientModel = clientModel;
+		this.setSize(700, 400); // Setting frame size
+		mainDocument = new StyledDocumentWithLocks(clientController);
         // Adds current frame to model observers list
-        IClientModel clientModel = BClientModel.build();
         clientModel.addObserver(this);
-		
-        this.addWindowListener(new WindowAdapter() {
-            // Invoked when a window has been opened.
-            public void windowOpened(WindowEvent e) {
-                System.out.println("Window opened event, showing user login dialog");
-                showLoginDialog();
-            }
-        });
-
-		this.setVisible(true);
-		
     }
+	
+	@Override
+	public void showForm() {
+		this.setVisible(true);
+	}
 
-    private void createNumberedTextPane() {
+	@Override
+    public void createNumberedTextPane() {
         mainTextPane = new JTextPane();
         // adding locked document
         mainTextPane.setDocument(mainDocument);
@@ -100,7 +94,8 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         this.getContentPane().add(paneScrollPane, BorderLayout.CENTER);
     }
 
-    private void createBottomLabels() {
+	@Override
+    public void createBottomLabels() {
         idLabel = new JLabel("Identifier");
         statusLabel = new JLabel("Status");
         usernameLabel = new JLabel("Username");
@@ -115,20 +110,10 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         this.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    private String MD5(String md5) {
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
-            byte[] array = md.digest(md5.getBytes());
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < array.length; ++i) {
-                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1, 3));
-            }
-            return sb.toString();
-        } catch (java.security.NoSuchAlgorithmException e) {
-            System.out.println("Problem with md5 alghorithm occured. Null string returned.");
-        }
-        return null;
-    }
+	@Override
+	public void setStatus(String status) {
+		statusLabel.setText(status);
+	}
 	
 	@Override
     public void showLoginDialog() {
@@ -150,22 +135,19 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         // Shows dialog, variable result stores selected option
         int result = JOptionPane.showOptionDialog(null, panel, dialogName, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, options, options[0]);
-        String passHash;
-        IClientController controller;
+        String pass;
         switch (result) {
             case JOptionPane.YES_OPTION:
-                passHash = MD5(new String(password.getPassword()));
-                System.out.println("Authorization. User entered login:" + login.getText() + ", password hash:" + passHash);
+                pass = new String(password.getPassword());
+                System.out.println("Authorization. User entered login:" + login.getText() + ", password hash:" + pass);
                 // Sending to server
-                controller = BClientController.build();
-                controller.loginUser(login.getText(), passHash);
+                clientController.loginUser(login.getText(), pass);
                 break;
             case JOptionPane.NO_OPTION:
-                passHash = MD5(new String(password.getPassword()));
-                System.out.println("Registration. User entered login:" + login.getText() + ", password hash:" + passHash);
+                pass = new String(password.getPassword());
+                System.out.println("Registration. User entered login:" + login.getText() + ", password hash:" + pass);
                 // Sending to server
-                controller = BClientController.build();
-                controller.registerUser(login.getText(), passHash);
+                clientController.registerUser(login.getText(), pass);
                 break;
             default:
                 System.out.println("User closed login window, program stopped");
@@ -186,14 +168,14 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
             String fileChosen = fileList.getSelectedValue().toString();
             System.out.println("User selected file: " + fileChosen);
             // Sending to server
-            IClientController clientController = BClientController.build();
             clientController.sendFileContentRequest(fileChosen);
         } else {
             System.out.println("User canceled / closed the dialog, result: " + result);
         }
     }
 
-    private void createMenu() {
+	@Override
+    public void createMenu() {
         JMenuBar menuBar;
         JMenu menu;
 
@@ -243,14 +225,14 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
     
     @Override
     public void updateId() {
-        IClientModel model = BClientModel.build();
-        idLabel.setText(model.getId());
+        idLabel.setText(clientModel.getId());
         statusLabel.setText("Successfully connected!");
+		usernameLabel.setText("Please, authorize");
+		showLoginDialog();
     }
 
     @Override
     public void updateFileList() {
-        IClientModel clientModel = BClientModel.build();
         String fileString = clientModel.getFileList();
         System.out.println(fileString);
         String[] filenames = fileString.split("\\r?\\n");
@@ -260,7 +242,6 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
     @Override
     public void updateFileContent() {
         try {
-            IClientModel clientModel = BClientModel.build();
             String content = clientModel.getFileContent();
             ArrayList<TextFragment> fragments = clientModel.getTextFragments();
             mainDocument.loadFileContent(fragments);
@@ -293,7 +274,6 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
     public void updateRangesState() {
         // Getting all document from model and updating textPane
         try {
-            IClientModel clientModel = BClientModel.build();
             mainTextPane.setEditable(true);
             mainDocument.loadFileContent(clientModel.getTextFragments());
             statusLabel.setText("Your lock successfully applied!");
@@ -333,8 +313,7 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
     @Override
     public void updateRegistrationStatus() {
         System.out.println("Registration successful.");
-        IClientModel model = BClientModel.build();
-        String username = model.getUsername();
+        String username = clientModel.getUsername();
         statusLabel.setText("Registration successful!");
 		usernameLabel.setText(username);
         
@@ -348,8 +327,7 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
     @Override
 	public void updateLoginStatus() {
 		System.out.println("Login successful.");
-		IClientModel model = BClientModel.build();
-		String username = model.getUsername();
+		String username = clientModel.getUsername();
 		statusLabel.setText("Login successful!");
 		usernameLabel.setText(username);
 
@@ -385,23 +363,6 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         pack();
     }// </editor-fold>                        
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        // if user prefers macOS, our jmenu will look native
-        if (System.getProperty("os.name").contains("Mac")) {
-            System.setProperty("apple.laf.useScreenMenuBar", "true");
-        }
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                UIManager.put("swing.boldMetal", Boolean.FALSE);
-                new ClientView().setVisible(true);
-            }
-        });
-    }
-
 	@Override
 	public void addOpenListener(ActionListener openListener) {
 		openMenuItem.addActionListener(openListener);
@@ -431,7 +392,6 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
 	public String getSavingContent() {
 		String content = "null";
 		try {
-			IClientController clientController = BClientController.build();
 			int startSymbol = clientController.getStartSymbolRange();
 			int endSymbol = clientController.getEndSymbolRange();
 

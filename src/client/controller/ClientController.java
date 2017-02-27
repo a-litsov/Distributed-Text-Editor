@@ -20,16 +20,23 @@ public class ClientController implements IClientController, ILockObserver {
     private IClientModel clientModel;
 	private IClientView clientView;
 	
-	public ClientController() {
-		clientModel = BClientModel.build();
-		clientView = BClientView.build();
+	public ClientController(IClientModel clientModel) {
+		this.clientModel = clientModel;
+		clientView = BClientView.build(clientModel, this);
+
+		clientView.createNumberedTextPane();
+        clientView.createMenu();
+        clientView.createBottomLabels();
+		clientView.showForm();
+		
 		clientView.addOpenListener(new OpenListener());
 		clientView.addSaveListener(new SaveListener());
 		clientView.addRefreshListener(new RefreshListener());
 		clientView.addLockListener(new LockListener());
 		clientView.addUnlockListener(new UnlockListener());
-		
 		clientView.addLockObserver(this);
+		
+		clientView.setStatus("Connecting to server..");
 		connect();
 	}
 
@@ -42,7 +49,7 @@ public class ClientController implements IClientController, ILockObserver {
 	public void updateEndLineChanging(int value) {
 		clientModel.incEndLineChanging(value);
 	}
-	
+		
 	class OpenListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			clientModel.sendFileListRequest();
@@ -81,9 +88,9 @@ public class ClientController implements IClientController, ILockObserver {
 	}
 	  
     @Override
-    public void loginUser(String name, String pass) {
-        clientModel = BClientModel.build();
-        clientModel.loginUser(name, pass);
+    public void loginUser(String login, String pass) {
+		String passHash = MD5(pass);
+        clientModel.loginUser(login, passHash);
     }
 
     @Override
@@ -136,13 +143,28 @@ public class ClientController implements IClientController, ILockObserver {
 
     @Override
     public void registerUser(String login, String pass) {
-        clientModel = BClientModel.build();
-        clientModel.registerUser(login, pass);
+		String passHash = MD5(pass);
+        clientModel.registerUser(login, passHash);
     }
 
     @Override
     public void refreshFileContent() {
         clientModel = BClientModel.build();
         clientModel.refreshFileContent();
+    }
+	
+	private String MD5(String md5) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] array = md.digest(md5.getBytes());
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < array.length; ++i) {
+                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1, 3));
+            }
+            return sb.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            System.out.println("Problem with md5 alghorithm occured. Null string returned.");
+        }
+        return null;
     }
 }

@@ -5,14 +5,18 @@
  */
 package client.controller;
 
+import client.model.IClientModel;
+
 /**
  *
  * @author al1as
  */
 public class BClientController {
-    static IClientController clientController = new ClientController();
+    static IClientController clientController = null;
     
-    public static IClientController build() {
+    public static IClientController build(IClientModel model) {
+		if(clientController == null)
+			clientController = new ClientController(model);
         return clientController;
     }
 }

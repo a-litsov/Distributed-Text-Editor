@@ -288,14 +288,6 @@ class ClientModel implements IClientModel{
         } 
     }
     
-    private void getPrevFilenameFromServer() {
-        try {
-            prevFilename = dis.readUTF();
-        } catch (IOException ex) {
-               Logger.getLogger(ClientModel.class.getName()).log(Level.SEVERE, null, ex); 
-        }
-    }
-    
     private void getFileListFromServer() {
         try {
             fileList = dis.readUTF();            
