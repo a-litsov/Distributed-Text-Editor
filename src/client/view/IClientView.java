@@ -5,6 +5,7 @@
  */
 package client.view;
 
+import client.controller.ILockObserver;
 import java.awt.event.ActionListener;
 
 /**
@@ -22,4 +23,6 @@ public interface IClientView {
 	void addRefreshListener(ActionListener refreshListene);
 	void addLockListener(ActionListener lockListener);
 	void addUnlockListener(ActionListener unlockListener);
+	
+	void addLockObserver(ILockObserver obs);
 }

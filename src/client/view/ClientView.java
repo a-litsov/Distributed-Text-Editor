@@ -32,6 +32,7 @@ import client.model.BClientModel;
 import client.model.IClientModel;
 import client.controller.BClientController;
 import client.controller.IClientController;
+import client.controller.ILockObserver;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -293,9 +294,6 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
         // Getting all document from model and updating textPane
         try {
             IClientModel clientModel = BClientModel.build();
-            Range tmp = new Range(startSymbolNumber, endSymbolNumber);
-            ArrayList<Range> ranges = new ArrayList<Range>();
-            ranges.add(tmp);
             mainTextPane.setEditable(true);
             mainDocument.loadFileContent(clientModel.getTextFragments());
             statusLabel.setText("Your lock successfully applied!");
@@ -473,6 +471,9 @@ public class ClientView extends javax.swing.JFrame implements IObserver, IClient
 		}
 		return endLockPos;
 	}
-	
-	
+
+	@Override
+	public void addLockObserver(ILockObserver obs) {
+		mainDocument.addLockObserver(obs);
+	}
 }

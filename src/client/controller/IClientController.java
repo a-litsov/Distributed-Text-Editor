@@ -19,10 +19,10 @@ public interface IClientController {
     void sendRangesAndLock(int startSymbol, int endSymbol);
     void sendUnlocking();
     void sendSaveRequest(String content);
-    void incEndLock(int value);
+//    void incEndLock(int value);
     int getStartSymbolRange();
     int getEndSymbolRange();
-    void incEndLineChanging(int value);
+//    void incEndLineChanging(int value);
     void connect();
     void refreshFileContent();
 }

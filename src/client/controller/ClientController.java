@@ -15,7 +15,7 @@ import java.awt.event.ActionListener;
  *
  * @author al1as
  */
-public class ClientController implements IClientController {
+public class ClientController implements IClientController, ILockObserver {
 
     private IClientModel clientModel;
 	private IClientView clientView;
@@ -28,7 +28,19 @@ public class ClientController implements IClientController {
 		clientView.addRefreshListener(new RefreshListener());
 		clientView.addLockListener(new LockListener());
 		clientView.addUnlockListener(new UnlockListener());
+		
+		clientView.addLockObserver(this);
 		connect();
+	}
+
+	@Override
+	public void updateEndSymbol(int value) {
+		clientModel.incEndLock(value);
+	}
+
+	@Override
+	public void updateEndLineChanging(int value) {
+		clientModel.incEndLineChanging(value);
 	}
 	
 	class OpenListener implements ActionListener {
@@ -109,12 +121,6 @@ public class ClientController implements IClientController {
         clientModel = BClientModel.build();
         clientModel.connect();
     }
-    
-    @Override
-    public void incEndLock(int value) {
-        clientModel = BClientModel.build();
-        clientModel.incEndLock(value);
-    }
 
     @Override
     public int getStartSymbolRange() {
@@ -126,12 +132,6 @@ public class ClientController implements IClientController {
     public int getEndSymbolRange() {
         clientModel = BClientModel.build();
         return clientModel.getEndSymbolRange();
-    }
-
-    @Override
-    public void incEndLineChanging(int value) {
-        clientModel = BClientModel.build();
-        clientModel.incEndLineChanging(value);
     }
 
     @Override

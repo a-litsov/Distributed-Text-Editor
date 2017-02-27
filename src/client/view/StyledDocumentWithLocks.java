@@ -7,6 +7,7 @@ package client.view;
 
 import client.controller.BClientController;
 import client.controller.IClientController;
+import client.controller.ILockObserver;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -29,6 +30,7 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
 {
     SimpleAttributeSet lockAttributeSet = new SimpleAttributeSet();
     boolean isActivated = false;
+	ArrayList<ILockObserver> obsList = new ArrayList<ILockObserver>();
     
     public StyledDocumentWithLocks() 
     {
@@ -44,12 +46,14 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
             end++;
         }
         if (offset >= controller.getStartSymbolRange() &&  offset + length <= end) {
-                controller.incEndLock(-length);
-                String deletedContent = this.getText(offset, length);
+//                controller.incEndLock(-length);
+				updateEndSymbol(-length);
+				String deletedContent = this.getText(offset, length);
                 
                 for(int i = 0; i < length; i++) {
                     if(deletedContent.charAt(i) == '\n')
-                        controller.incEndLineChanging(-1);
+						updateEndLineChanging(-1);
+//                        controller.incEndLineChanging(-1);
                 }
                 super.remove(offset, length);
         }
@@ -64,11 +68,13 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
         }
         int length = str.length();
         if (offset >= controller.getStartSymbolRange() && offset <= end) {
-            controller.incEndLock(length);
-            for (int i = 0; i < length; i++) 
+//            controller.incEndLock(length);
+			updateEndSymbol(length);
+			for (int i = 0; i < length; i++) 
                 if (str.charAt(i) == '\n') 
-                    controller.incEndLineChanging(1);
-            super.insertString(offset, str, a);
+					updateEndLineChanging(1);
+//                    controller.incEndLineChanging(1);
+				super.insertString(offset, str, a);
         }
     }
     
@@ -91,4 +97,18 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
             }
         }
     }
+	
+	private void updateEndSymbol(int end) {
+		for(ILockObserver obs: obsList)
+			obs.updateEndSymbol(end);
+	}
+	
+	private void updateEndLineChanging(int end) {
+		for(ILockObserver obs: obsList)
+			obs.updateEndLineChanging(end);
+	}
+	
+	public void addLockObserver(ILockObserver obs) {
+		obsList.add(obs);
+	}
 }
