@@ -34,7 +34,7 @@ import server.presenter.IServerPresenter;
  * @author al1as
  */
 public class ServerModel implements IServerModel {
-    JTable table;
+    DefaultTableModel tableModel;
     ServerSocket ss;
     Hashtable<UUID, FileElement> allClient = new Hashtable<UUID, FileElement>();
     Hashtable<String, ArrayList> allFiles = new Hashtable<String, ArrayList>();
@@ -42,22 +42,21 @@ public class ServerModel implements IServerModel {
     String message = "null";
     ArrayList<IServerPresenter> list_p = new ArrayList();
     
-    public ServerModel(JTable table) {
-        this.table = table;
+    public ServerModel(DefaultTableModel tableModel) {
+        this.tableModel = tableModel;
     }  
     
     @Override
     public synchronized void addToTable(String filename, FileElement element) {
-        DefaultTableModel model = (DefaultTableModel)table.getModel();
-        int row_num = getRowByValue(model, element.username);
+        int row_num = getRowByValue(tableModel, element.username);
         Object[] row = { filename, Integer.toString(element.range.getStart()) + "-" +
                 Integer.toString(element.range.getEnd()), element.username, element.getUUID().toString()
                 };
         if(row_num == -1)  
-            model.addRow(row);
+            tableModel.addRow(row);
         else {
-            model.removeRow(row_num);
-            model.insertRow(row_num, row);
+            tableModel.removeRow(row_num);
+            tableModel.insertRow(row_num, row);
         }
     }
     
@@ -79,15 +78,14 @@ public class ServerModel implements IServerModel {
     public synchronized void delFromTable(String filename, FileElement element) {
 		// Is a better way to store here not JTable, but AbstractTableModel, do this things and then fire 
 		// tableModel.fireTableDataChanged(); or fireTableRowsDeleted and fireTableRowsInserted(it is better way, ok)
-        DefaultTableModel model = (DefaultTableModel)table.getModel();
-        int row_num = getRowByValue(model, element.username);
+        int row_num = getRowByValue(tableModel, element.username);
         Object[] row = { filename, Integer.toString(element.range.getStart()) + "-" +
                 Integer.toString(element.range.getEnd()), element.username, element.getUUID().toString()
                 };
         if(row_num == -1)  
             System.out.println("Error: user not found!");
         else 
-            model.removeRow(row_num);
+            tableModel.removeRow(row_num);
     }
     
     @Override

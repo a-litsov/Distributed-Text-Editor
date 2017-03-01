@@ -5,7 +5,7 @@
  */
 package server.model;
 
-import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -13,8 +13,8 @@ import javax.swing.JTable;
  */
 public class BServerModel {
     static IServerModel model;
-    public static  IServerModel build(JTable table) {
-        model = new ServerModel(table);
+    public static  IServerModel build(DefaultTableModel tableModel) {
+        model = new ServerModel(tableModel);
         return model;
     }
 }

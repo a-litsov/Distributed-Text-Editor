@@ -5,7 +5,13 @@
         <group>
             <file>file:/Users/al1as/Developer/DistributedTextEditor/src/client/controller/ClientController.java</file>
             <file>file:/Users/al1as/Developer/DistributedTextEditor/src/client/view/IClientView.java</file>
+            <file>file:/Users/al1as/Developer/DistributedTextEditor/src/client/controller/IClientController.java</file>
+            <file>file:/Users/al1as/Developer/DistributedTextEditor/src/client/ClientMVC.java</file>
+            <file>file:/Users/al1as/Developer/DistributedTextEditor/src/client/model/ClientModel.java</file>
             <file>file:/Users/al1as/Developer/DistributedTextEditor/src/client/view/ClientView.java</file>
+            <file>file:/Users/al1as/Developer/DistributedTextEditor/src/server/presenter/ServerPresenter.java</file>
+            <file>file:/Users/al1as/Developer/DistributedTextEditor/src/client/view/StyledDocumentWithLocks.java</file>
+            <file>file:/Users/al1as/Developer/DistributedTextEditor/src/client/view/BClientView.java</file>
         </group>
     </open-files>
 </project-private>

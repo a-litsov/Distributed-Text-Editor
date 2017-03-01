@@ -5,22 +5,15 @@
  */
 package client.view;
 
-import client.controller.BClientController;
 import client.controller.IClientController;
 import client.controller.ILockObserver;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
-import javax.swing.text.DocumentFilter;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-import javax.swing.text.Utilities;
-
-import server.model.Range;
 
 /**
  *
@@ -47,14 +40,12 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
             end++;
         }
         if (offset >= controller.getStartSymbolRange() &&  offset + length <= end) {
-//                controller.incEndLock(-length);
 				updateEndSymbol(-length);
 				String deletedContent = this.getText(offset, length);
                 
                 for(int i = 0; i < length; i++) {
                     if(deletedContent.charAt(i) == '\n')
 						updateEndLineChanging(-1);
-//                        controller.incEndLineChanging(-1);
                 }
                 super.remove(offset, length);
         }
@@ -68,12 +59,10 @@ public class StyledDocumentWithLocks extends DefaultStyledDocument
         }
         int length = str.length();
         if (offset >= controller.getStartSymbolRange() && offset <= end) {
-//            controller.incEndLock(length);
 			updateEndSymbol(length);
 			for (int i = 0; i < length; i++) 
                 if (str.charAt(i) == '\n') 
 					updateEndLineChanging(1);
-//                    controller.incEndLineChanging(1);
 				super.insertString(offset, str, a);
         }
     }

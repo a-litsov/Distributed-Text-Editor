@@ -5,8 +5,6 @@
  */
 package client.controller;
 
-import client.view.IObserver;
-
 /**
  *
  * @author al1as

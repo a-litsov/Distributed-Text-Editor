@@ -40,7 +40,6 @@ public class ServerView implements IServerView {
         {
             ranges[0] = dis.readInt(); // start
             ranges[1] = dis.readInt(); // end
-            // В презентере сконструировать Range и добавить его в общую хэштаблицу
         } catch (IOException ex) {
                 Logger.getLogger(ServerView.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import server.model.BServerModel;
 import server.model.IServerModel;
 
@@ -67,7 +68,7 @@ public class ServerThread extends Thread{
 
     @Override
     public void run() {
-        model = BServerModel.build(table);
+        model = BServerModel.build((DefaultTableModel)table.getModel());
         while(f == true)
         {
             try {

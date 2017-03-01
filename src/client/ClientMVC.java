@@ -6,7 +6,6 @@
 package client;
 import client.model.*;
 import client.controller.*;
-import client.view.*;
 
 /**
  *
